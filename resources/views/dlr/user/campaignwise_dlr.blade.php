@@ -1,9 +1,4 @@
-@extends('layouts.admin-master')
-@section('content')
-<link href="{{ url('public/datatables/jquery.dataTables.min.css')}}" rel="stylesheet">
-<link href="{{ url('public/datatables/dataTables.bootstrap4.min.css')}}" rel="stylesheet">
-<script type="text/javascript" src="{{ url('public/datatables/jdataTables.bootstrap4.min.js')}}"></script>
-<script type="text/javascript" src="{{ url('public/datatables/jquery.dataTables.min.js')}}"></script>
+
 <table id="example" class="table table-striped table-bordered datatables" style="width:100%">
         <thead>
             <tr>
@@ -100,9 +95,3 @@
             </tr>
         </tfoot>
     </table>
-<script>
-	$(document).ready(function () {
-	    $('#example').DataTable();
-	});
-</script>
-@endsection

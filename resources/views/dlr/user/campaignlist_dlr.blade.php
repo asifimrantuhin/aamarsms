@@ -1,4 +1,11 @@
 @extends('layouts.admin-master')
+@section("page-style")
+<style type="text/css">
+	#campaignViewModal .modal-dialog {
+		width: 1000px;
+	}
+</style>
+@endsection
 @section('content')
 <link href="{{ url('public/css/bootstrap-datetimepicker.min.css')}}" rel="stylesheet">
 <style type="text/css">
@@ -123,7 +130,7 @@
 
     <!-- View Modal -->
 	<div class="modal fade" id="campaignViewModal" tabindex="-1" aria-labelledby="campaignViewModal" aria-hidden="true">
-	  <div class="modal-dialog modal-md">
+	  <div class="modal-dialog modal-lg" style="width: 1200px;">
 	    <div class="modal-content">
 	      <div class="modal-header">
 	        <h5 class="modal-title" id="campaignViewModal">Modal title</h5>
@@ -149,28 +156,25 @@
 
 @endsection
 
-@section("page-style")
-<style type="text/css">
-	#campaignViewModal .modal-dialog {
-		width: 1000px;
-	}
-</style>
-@endsection
+
 
 @section("page-script")
 
 <script type="text/javascript">
-	
-	$(function() {
-		$(".view").on("click", function() {
-
-
-		})
-	})
-
 
 	function campaignPopupView(campaign_id) {
 		$("#campaignViewModal").modal("show");
+
+		if(campaign_id != '') {
+			$.ajax({
+				url: "/user/dlr/campaignwise/"+campaign_id,
+				type: "GET",
+				success: function(resp) {
+					// consol.log(resp);
+					$("#campaignViewModal .modal-body").html(resp);
+				}
+			})
+		}
 	}
 
 </script>
