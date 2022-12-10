@@ -130,7 +130,7 @@
 
     <!-- View Modal -->
 	<div class="modal fade" id="campaignViewModal" tabindex="-1" aria-labelledby="campaignViewModal" aria-hidden="true">
-	  <div class="modal-dialog modal-lg" style="width: 1250px;">
+	  <div class="modal-dialog modal-lg" style="width: 1500px;">
 	    <div class="modal-content">
 	      <div class="modal-header">
 	        <h5 class="modal-title" id="campaignViewModal">Modal title</h5>
@@ -139,7 +139,8 @@
 	        </button>
 	      </div>
 	      <div class="modal-body">
-	        <table class="table table-striped table-bordered campaignDatatables" style="width:100%">
+	      	<div class="table-responsive">
+	        <table class="table table-striped table-bordered campaignDatatables" >
 		        <thead>
 		            <tr>
 		                <th>Mobile Number</th>
@@ -152,6 +153,7 @@
 		        <tbody>
 	        	</tbody>
         	</table>
+        </div>
 	      </div>
 	      <!-- <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -193,6 +195,7 @@
 		        serverSide: true,
 		        lengthMenu: [[50, 100, 500, 1000, -1], [50, 100, 500, 1000, 'ALL']],
 		        ajax: "/user/dlr/campaignwise/"+campaign_id,
+
 		        columns: [
 		            {data: 'mobile_number', name: 'mobile_number'},
 		            {data: 'created_at', name: 'created_at', orderable: true, searchable: true},
