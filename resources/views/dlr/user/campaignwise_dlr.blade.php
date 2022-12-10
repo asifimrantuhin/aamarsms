@@ -1,5 +1,5 @@
 
-<table id="example" class="table table-striped table-bordered datatables" style="width:100%">
+<table id="example" class="table table-striped table-bordered datatables" style="width:90%">
         <thead>
             <tr>
                 <th>Name</th>
