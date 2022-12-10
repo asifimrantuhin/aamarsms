@@ -862,6 +862,30 @@ class CampaignController extends Controller
         }
         else
         {
+            sms_senders::where('campaign_id',$id)->update(['status' => 1]);
+            Campaign::whereId($id)->update(['status' => 4]);
+    
+            $cam_name = Campaign::whereId($id)->pluck('campaign_name')->first();
+            Log::addToLog("$cam_name Campaign set for re-send");
+            Toastr::success("Campaign set for re-send :)",'Success');
+        }
+        return back();
+    }
+
+    public function Retry_Old(Request $request,$id)
+    {
+        $resend_time = Campaign::whereId($id)->pluck('updated_at')->first();
+        $current_time = date('Y-m-d h:i:s');
+        $mint = strtotime($resend_time. ' + 30 minute');
+        $newdate = date('Y-m-d H:i:s', $mint);
+        // dd($current_time,$newdate);
+
+        if($current_time < $newdate)
+        {
+            Toastr::warning("Please do retry after 30 min of your last retried!!!",'Warning');
+        }
+        else
+        {
             $senders = array('status' => 1);
             sms_senders::where('campaign_id',$id)->update($senders);
             $campaign = array('status' => 4,'updated_at' => date('Y-m-d h:i:s'));
@@ -871,7 +895,6 @@ class CampaignController extends Controller
             Log::addToLog("$cam_name Campaign set for re-send");
             Toastr::success("Campaign set for re-send :)",'Success');
         }
-
 
 
         return back();

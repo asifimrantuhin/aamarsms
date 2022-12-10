@@ -180,7 +180,7 @@ class SendSMS extends Model {
                             
                         }
                     } catch (\Exception $e) {
-                        echo $e->getMessage(); exit;
+                       // echo $e->getMessage(); exit;
 
                         DB::table('error_log')->insert(
                                 [
@@ -1090,8 +1090,8 @@ public static function gpBalance() {
                 $response = SendSMS::TeleTalkApi($contacts_arr, $mask);
                 break;
             case "grameenphone":
-                $response = SendSMS::gpApiNew($contacts_arr, $mask,$sms_type);
-                //$response = SendSMS::ranksTelBulkSMS($contacts_arr);
+                //$response = SendSMS::gpApiNew($contacts_arr, $mask,$sms_type);
+                $response = SendSMS::ranksTelBulkSMS($contacts_arr);
                 break;
             case "rankstel":
                 $response = SendSMS::ranksTelBulkSMS($contacts_arr);

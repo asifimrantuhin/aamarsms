@@ -235,7 +235,7 @@ class HomeController extends Controller
  
     public static function smsSending() {
 		ini_set('max_execution_time', 0);
-        $limit = 25;
+        $limit = 50;
         
         $campaigns =  Campaign::select('id', 'dynamic_sms', 'sms_count', 'campaign_name')
         ->where('status', 4)// 2

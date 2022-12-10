@@ -4,7 +4,7 @@
 Route::get('sms-sender', 'HomeController@smsSender');
 ## SMS sender 10 sec interval
 Route::get('sms-sending', 'HomeController@smsSending');
-Route::get('bulk-sms-sending', 'HomeController@nonmaskingBulkService');
+Route::get('bulk-sms-sending', 'HomeController@smsSending');
 ## Price Sync 30 sec interval
 Route::get('price-sync','HomeController@priceSync'); 
 ## API Status check 10 mintues interval

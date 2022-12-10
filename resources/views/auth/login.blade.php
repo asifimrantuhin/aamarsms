@@ -148,7 +148,7 @@ if($logo){
       <form method="POST" action="{{ route('login') }}" class="form">
       	@csrf
         <div class="form__field">
-          <input type="email" name="email" placeholder="email@xyz.com" value="{{ old('email') }}" required autofocus>
+          <input type="email" name="email" placeholder="Enter your email" value="{{ old('email') }}" required autofocus>
           @if ($errors->has('email'))
           <span class="help-block">
           <span class="badge badge-danger"> <strong>{{ $errors->first('email')}}</strong></span>
