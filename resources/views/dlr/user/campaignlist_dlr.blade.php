@@ -130,7 +130,7 @@
 
     <!-- View Modal -->
 	<div class="modal fade" id="campaignViewModal" tabindex="-1" aria-labelledby="campaignViewModal" aria-hidden="true">
-	  <div class="modal-dialog modal-lg" style="width: 1200px;">
+	  <div class="modal-dialog modal-lg" style="width: 1250px;">
 	    <div class="modal-content">
 	      <div class="modal-header">
 	        <h5 class="modal-title" id="campaignViewModal">Modal title</h5>
@@ -191,15 +191,15 @@
 			var table = $('.campaignDatatables').DataTable({
 		        processing: true,
 		        serverSide: true,
-		        lengthMenu: [[1, 10, 25, 50, 100, -1], [1, 10, 25, 50, 100, 'ALL']],
+		        lengthMenu: [[50, 100, 500, 1000, -1], [50, 100, 500, 1000, 'ALL']],
 		        ajax: "/user/dlr/campaignwise/"+campaign_id,
 		        columns: [
 		            {data: 'mobile_number', name: 'mobile_number'},
-		            {data: 'created_at', name: 'created_at'},
-		            {data: 'operator', name: 'operator'},
+		            {data: 'created_at', name: 'created_at', orderable: true, searchable: true},
+		            {data: 'operator', name: 'operator', orderable: true, searchable: true},
 		            {data: 'price', name: 'price'},
 		            {data: 'text_body', name: 'text_body'},
-		            // {data: 'action', name: 'action', orderable: false, searchable: false},
+		            //{data: 'action', name: 'action', orderable: true, searchable: true},
 		        ]
 		    });
 
