@@ -93,8 +93,8 @@
 <script src="{{url('js/jquery.min.js')}}"></script>
 <script src="{{url('js/toastr.min.js')}}"></script>
 
-<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script> -->
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 
 <script src="{{url('templates/lib/popper.js/popper.js')}}"></script>
 <script src="{{url('templates/lib/bootstrap/bootstrap.js')}}"></script>

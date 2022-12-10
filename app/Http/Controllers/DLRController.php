@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Validator;
 use Rap2hpoutre\FastExcel\FastExcel;
 use DB;
 use Excel;
+use DataTables;
 
 
 
@@ -74,17 +75,57 @@ class DLRController extends Controller
     }
 
 
+    // public function campaignwise_dlr(Request $request, $campaignid){
+
+    //     $list = DB::table('sms_transactions')
+    //     ->select('sms_transactions.*', 'campaigns.text_body', 'campaigns.sender')
+    //     ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
+    //     ->where('sms_transactions.campaign_id', $campaignid)
+    //     ->where('sms_transactions.user_id', Auth::user()->id)
+    //     ->get();
+
+
+    //     return view('dlr/user/campaignwise_dlr',compact('list'));
+
+    // }
+
+
     public function campaignwise_dlr(Request $request, $campaignid){
 
         $list = DB::table('sms_transactions')
-        ->select('sms_transactions.*', 'campaigns.text_body', 'campaigns.sender')
+        // ->select('sms_transactions.*', 'campaigns.text_body', 'campaigns.sender')
+        ->select('sms_transactions.mobile_number as mobile_number', 'sms_transactions.created_at as created_at', 'sms_transactions.operator as operator', 'sms_transactions.price as price', 'campaigns.text_body as text_body')
         ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
         ->where('sms_transactions.campaign_id', $campaignid)
         ->where('sms_transactions.user_id', Auth::user()->id)
         ->get();
 
+        return DataTables::of($list)
+                        ->addIndexColumn()
+                        ->make(true);
 
-        return view('dlr/user/campaignwise_dlr',compact('list'));
+        // return view('dlr/user/campaignwise_dlr');
 
     }
+
+    public function userwise_dlr(Request $request){
+
+        $list = DB::table('sms_transactions')
+        // ->select('sms_transactions.*', 'campaigns.text_body', 'campaigns.sender')
+        ->select('sms_transactions.mobile_number as mobile_number', 'sms_transactions.created_at as created_at', 'sms_transactions.operator as operator', 'sms_transactions.price as price', 'campaigns.text_body as text_body')
+        ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
+        ->where('sms_transactions.user_id', Auth::user()->id)
+        ->orderBy('id', 'DESC')
+        ->get();
+
+        return DataTables::of($list)
+                        ->addIndexColumn()
+                        ->make(true);
+
+        // return view('dlr/user/userwise_dlr');
+
+    }
+
+
+
 }

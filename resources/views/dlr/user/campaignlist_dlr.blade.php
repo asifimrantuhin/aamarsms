@@ -139,12 +139,24 @@
 	        </button>
 	      </div>
 	      <div class="modal-body">
-	        ...
+	        <table class="table table-striped table-bordered campaignDatatables" style="width:100%">
+		        <thead>
+		            <tr>
+		                <th>Mobile Number</th>
+		                <th>Sent Time</th>
+		                <th>Operator</th>
+		                <th>Charged</th>
+		                <th>SMS Text</th>
+		            </tr>
+		        </thead>
+		        <tbody>
+	        	</tbody>
+        	</table>
 	      </div>
-	      <div class="modal-footer">
+	      <!-- <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 	        <button type="button" class="btn btn-primary">Save changes</button>
-	      </div>
+	      </div> -->
 	    </div>
 	  </div>
 	</div>
@@ -164,17 +176,36 @@
 
 	function campaignPopupView(campaign_id) {
 		$("#campaignViewModal").modal("show");
+		$('.campaignDatatables').DataTable().destroy();
 
 		if(campaign_id != '') {
-			$.ajax({
-				url: "/user/dlr/campaignwise/"+campaign_id,
-				type: "GET",
-				success: function(resp) {
-					// consol.log(resp);
-					$("#campaignViewModal .modal-body").html(resp);
-				}
-			})
+			// $.ajax({
+			// 	url: "/user/dlr/campaignwise/"+campaign_id,
+			// 	type: "GET",
+			// 	success: function(resp) {
+			// 		// consol.log(resp);
+			// 		//$("#campaignViewModal .modal-body").html(resp);
+			// 	}
+			// })
+
+			var table = $('.campaignDatatables').DataTable({
+		        processing: true,
+		        serverSide: true,
+		        lengthMenu: [[1, 10, 25, 50, 100, -1], [1, 10, 25, 50, 100, 'ALL']],
+		        ajax: "/user/dlr/campaignwise/"+campaign_id,
+		        columns: [
+		            {data: 'mobile_number', name: 'mobile_number'},
+		            {data: 'created_at', name: 'created_at'},
+		            {data: 'operator', name: 'operator'},
+		            {data: 'price', name: 'price'},
+		            {data: 'text_body', name: 'text_body'},
+		            // {data: 'action', name: 'action', orderable: false, searchable: false},
+		        ]
+		    });
+
 		}
+
+
 	}
 
 </script>
