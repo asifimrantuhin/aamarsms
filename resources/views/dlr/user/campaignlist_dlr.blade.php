@@ -130,10 +130,10 @@
 
     <!-- View Modal -->
 	<div class="modal fade" id="campaignViewModal" tabindex="-1" aria-labelledby="campaignViewModal" aria-hidden="true">
-	  <div class="modal-dialog modal-lg" style="width: 1500px;">
+	  <div class="modal-dialog modal-lg">
 	    <div class="modal-content">
 	      <div class="modal-header">
-	        <h5 class="modal-title" id="campaignViewModal">Modal title</h5>
+	        <h5 class="modal-title" id="campaignViewModal">Delivery Log</h5>
 	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          <span aria-hidden="true">&times;</span>
 	        </button>

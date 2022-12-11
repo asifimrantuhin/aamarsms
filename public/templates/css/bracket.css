@@ -4404,6 +4404,12 @@ button.close {
     max-width: 800px;
   }
 }
+@media (min-width: 1250px) {
+  .modal-lg {
+    max-width: 1100px;
+  }
+}
+
 .tooltip {
   position: absolute;
   z-index: 1070;
