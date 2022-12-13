@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CampaignWiseDLRExport;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Common;
@@ -17,9 +18,9 @@ use App\Models\User;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 use Rap2hpoutre\FastExcel\FastExcel;
 use DB;
-use Excel;
 use DataTables;
 
 
@@ -106,6 +107,11 @@ class DLRController extends Controller
 
         // return view('dlr/user/campaignwise_dlr');
 
+    }
+
+    public function campaignDlrExport($campaignid)
+    {
+        return Excel::download(new CampaignWiseDLRExport($campaignid), 'campain_wise_dlr.xlsx');
     }
 
     public function userwise_dlr(Request $request){

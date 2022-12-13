@@ -552,6 +552,7 @@ Route::group(['prefix' => 'reseller/dlr', 'middleware'=>['auth']], function () {
 });
 Route::group(['prefix' => 'user/dlr', 'middleware'=>['auth']], function () {
     Route::get('campaignwise/{campaignid}', [DLRController::class, 'campaignwise_dlr']);
+    Route::get('campaignwise/dlr_export/{id}', [DLRController::class, 'campaignDlrExport']);
     Route::get('campaignlist', [DLRController::class, 'campaignlist_dlr']);
     Route::get('userwise/{userid}', [DLRController::class, 'userwise_dlr']);
 });

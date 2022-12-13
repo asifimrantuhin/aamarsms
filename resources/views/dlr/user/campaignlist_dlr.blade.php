@@ -107,7 +107,7 @@
 	                            <td>{{$campaign->sms_count * $succ}}</td>
 	                            <td>{{number_format($campaign->campaign_cost, 4)}}</td>
 	                       		<td>
-	                       			<span class="view" onclick="campaignPopupView({{ $campaign->id }})">View</span>|<span class="export">Export</span>
+									<span class="view" onclick="campaignPopupView({{ $campaign->id }})">View</span>|<a href="{{ url('user/dlr/campaignwise/dlr_export/').'/'.$campaign->id }}"><span class="export">Export</span></a>
 	                       		</td>
 	                            </tr>
 	                            @endforeach
