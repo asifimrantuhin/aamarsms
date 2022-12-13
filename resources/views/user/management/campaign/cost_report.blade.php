@@ -54,9 +54,9 @@
                                     <?php if( $d->total_cost >=0) $total_cost = ($total_cost+$d->total_cost) ; ?>
                                     <tr>
                                         <td>{{date('d-m-y',strtotime($d->date))}}</td>
-                                        <td>{{$d->total_number}}</td>
-                                        <td>{{$d->total_sms}}</td>
-                                        <td>{{number_format($d->total_cost,4)}}</td>
+                                        <td class="text-center">{{$d->total_number}}</td>
+                                        <td class="text-center">{{$d->total_sms}}</td>
+                                        <td class="text-right">{{number_format($d->total_cost,2)}}</td>
                 
                                     @endforeach
                                     @else
@@ -67,9 +67,9 @@
                                     <tr>
                                         <th colspan="1" class="text-right">Sub Total = </th>
                                         
-                                         <th> {{ $total_number}} </th>
-                                         <th> {{ $total_sms}} </th>
-                                         <th> {{ number_format($total_cost,4)}} </th>
+                                         <th class="text-center"> {{ $total_number}} </th>
+                                         <th class="text-center"> {{ $total_sms}} </th>
+                                         <th class="text-right"> {{ number_format($total_cost,2)}} </th>
                                        
                                     </tr>
                                 </tbody>

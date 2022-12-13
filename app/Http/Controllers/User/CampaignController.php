@@ -844,7 +844,7 @@ class CampaignController extends Controller
 
 
 
-        return view('user.management.campaign.cost_report',compact('users','data'));
+        return view('user/management/campaign/cost_report',compact('users','data'));
     }
 
 

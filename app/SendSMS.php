@@ -195,8 +195,9 @@ class SendSMS extends Model {
                     }
                     
                 }
-            } else {
-                DB::table('campaigns')->where('id', $campaigns->id)->update(['status' => 3]);
+            } 
+            else {
+                DB::table('campaigns')->where('id', $campaigns->id)->update(['status' => 1]);
             }
         }
     }
