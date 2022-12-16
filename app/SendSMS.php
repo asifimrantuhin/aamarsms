@@ -425,8 +425,8 @@ class SendSMS extends Model {
 
 
     public static function gpApiNew($contacts_arr = '',$mask = '') {
-        $user = '';
-        $pass = '';
+        $user = 'AJRATECADMN78';
+        $pass = 'Ajragp@1';
         if (!$mask) {
             $mask = '';
         } else {
@@ -532,8 +532,8 @@ class SendSMS extends Model {
 
 
 public static function gpBalance() {
-        $user = 'NTLadmin';
-        $pass = 'N@jjTech123$';
+        $user = 'AJRATECADMN78';
+        $pass = 'Ajragp@1';
 
         	$request_body = '{ "username": "' . $user . '", "password": "' . $pass . '", "apicode": "3", "msisdn":"0", "countrycode": "0", "cli": "0", "messagetype": "0", "message": "0", "messageid": "0" }';
 

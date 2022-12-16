@@ -9,13 +9,13 @@
 @section('content')
 <link href="{{ url('public/css/bootstrap-datetimepicker.min.css')}}" rel="stylesheet">
 <style type="text/css">
-	.view{
+	.view, .export{
 		
 		font-size: 12px;
 		font-weight: bold;
 		text-transform: uppercase;
 	}
-	.view:hover{
+	.view:hover, .export:hover{
 		color: #054974;
 		cursor: pointer;
 	}
@@ -107,7 +107,7 @@
 	                            <td>{{$campaign->sms_count * $succ}}</td>
 	                            <td>{{number_format($campaign->campaign_cost, 4)}}</td>
 	                       		<td>
-									<span class="view" onclick="campaignPopupView({{ $campaign->id }})">View</span>|<a href="{{ url('user/dlr/campaignwise/dlr_export/').'/'.$campaign->id }}"><span class="export">Export</span></a>
+									<span class="view" onclick="campaignPopupView({{ $campaign->id }})">View</span>|<a class="export" href="{{ url('user/dlr/campaignwise/dlr_export/').'/'.$campaign->id }}"><span>Export</span></a>
 	                       		</td>
 	                            </tr>
 	                            @endforeach

@@ -85,6 +85,20 @@
           <li class="nav-item"><a href="{{ url('user/campaign_list') }}" class="nav-link">Campaign Report(Standard)</a></li>
           <!-- <li class="nav-item"><a href="{{ url('user/dynamic_list') }}" class="nav-link">Campaign Report(Dynamic)</a></li> -->
         </ul>
+
+        <a href="#" class="br-menu-link">
+            <div class="br-menu-item">
+                <i class="menu-item-icon ion-ios-paper-outline tx-22"></i>
+                <span class="menu-item-label">    &nbsp;   DLR</span>
+                <i class="menu-item-arrow fa fa-angle-down"></i>
+            </div><!-- menu-item -->
+        </a><!-- br-menu-link -->
+        <ul class="br-menu-sub nav flex-column">
+            <li class="nav-item"><a href="{{ url('user/dlr/deliverylog') }}" class="nav-link">Delivery Log</a></li>
+            <li class="nav-item"><a href="{{ url('user/dlr/campaignlist') }}" class="nav-link">CampaignWise DLR</a></li>
+          
+        </ul>
+
         @if(Auth::user()->api_enabled == 1)
          <a href="{{ url('user/api') }}" class="br-menu-link">
             <div class="br-menu-item">
