@@ -540,17 +540,23 @@ Route::group(['prefix' => 'manager', 'middleware'=>['manager','auth']], function
 });
 
 
-Route::group(['prefix' => 'admin/dlr', 'middleware'=>['auth']], function () {
+Route::group(['prefix' => 'admin/dlr'], function () {
     Route::get('campaignwise/{campaignid}', [DLRController::class, 'campaignwise_dlr']);
-    Route::get('campaignlist', [DLRController::class, 'campaignlist_dlr']);
-    Route::get('userwise/{userid}', [DLRController::class, 'userwise_dlr']);
+    Route::get('campaignwise/dlr_export/{id}', [DLRController::class, 'campaignDlrExport']);
+    Route::get('campaignlist', [DLRController::class, 'reseller_selfcampaignlist_dlr']);
+    Route::get('deliverylog', [DLRController::class, 'reseller_selfdeliverylog']);
+    Route::get('usercampaignlist', [DLRController::class, 'admin_usercampaignlist_dlr']);
+    Route::get('userdeliverylog', [DLRController::class, 'admin_userdeliverylog']);
 });
-Route::group(['prefix' => 'reseller/dlr', 'middleware'=>['auth']], function () {
+Route::group(['prefix' => 'reseller/dlr'], function () {
     Route::get('campaignwise/{campaignid}', [DLRController::class, 'campaignwise_dlr']);
-    Route::get('campaignlist', [DLRController::class, 'campaignlist_dlr']);
-    Route::get('userwise/{userid}', [DLRController::class, 'userwise_dlr']);
+    Route::get('campaignwise/dlr_export/{id}', [DLRController::class, 'campaignDlrExport']);
+    Route::get('campaignlist', [DLRController::class, 'reseller_selfcampaignlist_dlr']);
+    Route::get('deliverylog', [DLRController::class, 'reseller_selfdeliverylog']);
+    Route::get('usercampaignlist', [DLRController::class, 'resellers_usercampaignlist_dlr']);
+    Route::get('userdeliverylog', [DLRController::class, 'resellers_userdeliverylog']);
 });
-Route::group(['prefix' => 'user/dlr', 'middleware'=>['auth']], function () {
+Route::group(['prefix' => 'user/dlr'], function () {
     Route::get('campaignwise/{campaignid}', [DLRController::class, 'campaignwise_dlr']);
     Route::get('campaignwise/dlr_export/{id}', [DLRController::class, 'campaignDlrExport']);
     Route::get('campaignlist', [DLRController::class, 'campaignlist_dlr']);

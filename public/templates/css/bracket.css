@@ -1358,6 +1358,7 @@ pre code {
   vertical-align: top;
   border-top: 1px solid #dee2e6;
   vertical-align: middle;
+  font-size: 11px;
 }
 .table thead th {
   vertical-align: bottom;

@@ -95,6 +95,24 @@
           <li class="nav-item"><a href="{{ url('reseller/userReport') }}" class="nav-link">User SMS Report</a></li>    
         </ul>
 
+
+        <a href="#" class="br-menu-link">
+            <div class="br-menu-item">
+                <i class="menu-item-icon ion-ios-paper-outline tx-22"></i>
+                <span class="menu-item-label">    &nbsp;   DLR</span>
+                <i class="menu-item-arrow fa fa-angle-down"></i>
+            </div><!-- menu-item -->
+        </a>
+
+        <ul class="br-menu-sub nav flex-column">
+            <li class="nav-item"><a href="{{ url('reseller/dlr/deliverylog') }}" class="nav-link">My Delivery Log</a></li>
+            <li class="nav-item"><a href="{{ url('reseller/dlr/campaignlist') }}" class="nav-link">My CampaignWise DLR</a></li>
+
+            <li class="nav-item"><a href="{{ url('reseller/dlr/userdeliverylog') }}" class="nav-link">User Delivery Log</a></li>
+            <li class="nav-item"><a href="{{ url('reseller/dlr/usercampaignlist') }}" class="nav-link">User CampaignWise DLR</a></li>
+          
+        </ul>
+
        
         
     </div><!-- br-sideleft-menu -->

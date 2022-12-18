@@ -54,12 +54,12 @@
             
             <div class="row">
                 <div class="col-sm-12">
-	             <div class="table-wrapper bd" style="overflow-x:auto;">
+	            <div class="table-wrapper bd" style="overflow-x:auto;">
 	                <div class=" rounded table-responsive">
 	                    <table class="table table-bordered mg-b-0 table-small">
 	                        <thead>
 	                            <tr>
-	                            	
+	                            	<th>User</th>
 	                                <th>Submit Time</th>
 	                                <th>SenderID</th>
 	                                <th>SMS Text</th>
@@ -78,6 +78,7 @@
 	                            @foreach($campaigns as $campaign)
 	                            <tr>
 	                            
+	                            <td>{{$campaign->username}}</td>
 	                            <td>{{ date("d-M-y h:iA", strtotime($campaign->start_date))}}</td>
 	                            <td>@if(empty($campaign->sender))
 	                                Non-masking
@@ -110,7 +111,7 @@
 	                            <td>{{$campaign->sms_count * $succ}}</td>
 	                            <td>{{number_format($campaign->campaign_cost, 4)}}</td>
 	                       		<td>
-									<span class="view" onclick="campaignPopupView({{ $campaign->id }})">View</span>|<a class="export" href="{{ url('user/dlr/campaignwise/dlr_export/').'/'.$campaign->id }}"><span>Export</span></a>
+									<span class="view" onclick="campaignPopupView({{ $campaign->id }})">View</span>|<a class="export" href="{{ url('reseller/dlr/campaignwise/dlr_export/').'/'.$campaign->id }}"><span>Export</span></a>
 	                       		</td>
 	                            </tr>
 	                            @endforeach
@@ -184,15 +185,7 @@
 		$('.campaignDatatables').DataTable().destroy();
 
 		if(campaign_id != '') {
-			// $.ajax({
-			// 	url: "/user/dlr/campaignwise/"+campaign_id,
-			// 	type: "GET",
-			// 	success: function(resp) {
-			// 		// consol.log(resp);
-			// 		//$("#campaignViewModal .modal-body").html(resp);
-			// 	}
-			// })
-
+	
 			var table = $('.campaignDatatables').DataTable({
 		        processing: true,
 		        serverSide: true,

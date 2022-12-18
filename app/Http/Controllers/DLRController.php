@@ -76,33 +76,16 @@ class DLRController extends Controller
     }
 
 
-    // public function campaignwise_dlr(Request $request, $campaignid){
-
-    //     $list = DB::table('sms_transactions')
-    //     ->select('sms_transactions.*', 'campaigns.text_body', 'campaigns.sender')
-    //     ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
-    //     ->where('sms_transactions.campaign_id', $campaignid)
-    //     ->where('sms_transactions.user_id', Auth::user()->id)
-    //     ->get();
-
-
-    //     return view('dlr/user/campaignwise_dlr',compact('list'));
-
-    // }
-
-
     public function campaignwise_dlr(Request $request, $campaignid){
 
         $list = DB::table('sms_transactions')
         ->select('sms_transactions.mobile_number as mobile_number', 'sms_transactions.created_at as created_at', 'sms_transactions.operator as operator', 'sms_transactions.price as price', 'campaigns.text_body as text_body')
         ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
         ->where('sms_transactions.campaign_id', $campaignid)
-        ->where('sms_transactions.user_id', Auth::user()->id)
+        //->where('sms_transactions.user_id', Auth::user()->id)
         ->get();
 
-        return DataTables::of($list)
-                        ->addIndexColumn()
-                        ->make(true);
+        return DataTables::of($list)->addIndexColumn()->make(true);
     }
 
     public function campaignDlrExport($campaignid)
@@ -110,7 +93,58 @@ class DLRController extends Controller
         return Excel::download(new CampaignWiseDLRExport($campaignid), 'campain_wise_dlr.xlsx');
     }
 
+    
+
+    public function reseller_selfcampaignlist_dlr(Request $request){
+        $users = Auth::user();
+        $campaigns = Campaign::where('user_id',$users->id)->orderby('id','DESC')->paginate(20);
+        return view('dlr/user/campaignlist_dlr',compact('users','campaigns'));
+    }
+
+    public function resellers_usercampaignlist_dlr(Request $request){
+        $userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
+        $campaigns = Campaign::whereIn('user_id',$userlist)
+        ->select('campaigns.*', 'users.name as username')
+        ->join('users', 'users.id', 'campaigns.user_id')
+        ->orderby('id','DESC')
+        ->paginate(20);
+        return view('dlr/reseller/resellers_usercampaignlist_dlr',compact('campaigns'));
+    }
+
+    public function admin_usercampaignlist_dlr(Request $request){
+        $userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
+        $campaigns = Campaign::whereIn('user_id',$userlist)
+        ->select('campaigns.*', 'users.name as username')
+        ->join('users', 'users.id', 'campaigns.user_id')
+        ->orderby('id','DESC')
+        ->paginate(20);
+        return view('dlr/admin/resellers_usercampaignlist_dlr',compact('campaigns'));
+    }
+
+
+
     public function deliverylog(Request $request){
+        $fromdate = date('Y-m-d', strtotime("-3 months"));
+        $todate = date('Y-m-t');
+        if ($request->ajax()) {
+            $list = DB::table('sms_transactions')
+            ->select('sms_transactions.mobile_number as mobile_number', 'sms_transactions.created_at as created_at', 'sms_transactions.operator as operator', 'sms_transactions.price as price', 'campaigns.text_body as text_body')
+            ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
+            ->where('sms_transactions.user_id', Auth::user()->id)
+            ->whereBetween('sms_transactions.created_at',[$fromdate, $todate])
+            ->orderBy('sms_transactions.created_at', 'DESC')
+            ->get();
+
+            return DataTables::of($list)->addIndexColumn()->make(true);
+        }
+
+        return view('dlr/user/userwise_deliverylog');
+        
+
+    }
+
+
+    public function reseller_selfdeliverylog(Request $request){
         $fromdate = date('Y-m-d', strtotime("-3 months"));
         $todate = date('Y-m-t');
          if ($request->ajax()) {
@@ -130,6 +164,40 @@ class DLRController extends Controller
 
     }
 
+    public function resellers_userdeliverylog(Request $request){
+        $userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
+        $fromdate = date('Y-m-d', strtotime("-3 months"));
+        $todate = date('Y-m-t');
+        if ($request->ajax()) {
+            $list = DB::table('sms_transactions')
+            ->select('users.name as username','sms_transactions.mobile_number as mobile_number', 'sms_transactions.created_at as created_at', 'sms_transactions.operator as operator', 'sms_transactions.price as price', 'campaigns.text_body as text_body')
+            ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
+            ->join('users', 'users.id', 'campaigns.user_id')
+            ->whereIn('campaigns.user_id',$userlist)
+            ->whereBetween('sms_transactions.created_at',[$fromdate, $todate])
+            ->orderBy('sms_transactions.created_at', 'DESC')
+            ->get();
+            return DataTables::of($list)->addIndexColumn()->make(true);
+        }
+        return view('dlr/reseller/userwise_deliverylog');
+    }
 
+    public function admin_userdeliverylog(Request $request){
+        //$userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
+        $fromdate = date('Y-m-d', strtotime("-3 months"));
+        $todate = date('Y-m-t');
+         if ($request->ajax()) {
+            $list = DB::table('sms_transactions')
+            ->select('users.name as username','sms_transactions.mobile_number as mobile_number', 'sms_transactions.created_at as created_at', 'sms_transactions.operator as operator', 'sms_transactions.price as price', 'campaigns.text_body as text_body')
+            ->join('campaigns', 'campaigns.id', 'sms_transactions.campaign_id')
+            ->join('users', 'users.id', 'campaigns.user_id')
+            //->whereIn('campaigns.user_id',$userlist)
+            ->whereBetween('sms_transactions.created_at',[$fromdate, $todate])
+            ->orderBy('sms_transactions.created_at', 'DESC')
+            ->get();
+            return DataTables::of($list)->addIndexColumn()->make(true);
+        }
+        return view('dlr/admin/userwise_deliverylog');
+    }
 
 }

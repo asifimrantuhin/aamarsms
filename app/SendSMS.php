@@ -428,7 +428,7 @@ class SendSMS extends Model {
         $user = 'AJRATECADMN78';
         $pass = 'Ajragp@1';
         if (!$mask) {
-            $mask = '';
+            $mask = '01708403578';
         } else {
 
             // $gpmask = config('gpmask');

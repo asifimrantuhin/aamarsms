@@ -48,7 +48,7 @@
                     </div>
                     <br/>
 
-                    <div style="overflow-x:auto;">
+                    <div class="table-wrapper bd" style="overflow-x:auto;">
                         <div class="table-responsive">
                             <table class="table table-bordered mg-b-0">
                                 <thead>
