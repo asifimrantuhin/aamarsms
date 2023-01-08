@@ -153,6 +153,7 @@
                     </div>
                     <div class="col-3">
                         <select class="form-control" name="usertype"  required>
+                            <option value="2">Reseller</option>
                             <option value="3">User</option>
                         </select>
                     </div>
@@ -299,27 +300,27 @@
                                         <tbody>
                                             <tr>
                                                 <td><input type="hidden" name="operator[]" value="GP">GrameenPhone</td>
-                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.3000"></td>
+                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.2000"></td>
                                                 <td><input  class="form-control" name="masking_price[]" value="0.5000"></td>
                                             </tr>
                                             <tr>
                                                 <td><input type="hidden" name="operator[]" value="RB">Robi</td>
-                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.3000"></td>
+                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.2000"></td>
                                                 <td><input  class="form-control" name="masking_price[]" value="0.5000"></td>
                                             </tr>
                                             <tr>
                                                 <td><input type="hidden" name="operator[]" value="BL">Banglalink</td>
-                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.3000"></td>
+                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.2000"></td>
                                                 <td><input  class="form-control" name="masking_price[]" value="0.5000"></td>
                                             </tr>
                                             <tr>
                                                 <td><input type="hidden" name="operator[]" value="TL">Teletalk</td>
-                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.3000"></td>
+                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.2000"></td>
                                                 <td><input  class="form-control" name="masking_price[]" value="0.5000"></td>
                                             </tr>
                                             <tr>
                                                 <td><input type="hidden" name="operator[]" value="AL">Airtel</td>
-                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.3000"></td>
+                                                <td><input  class="form-control" name="nonmasking_price[]" value="0.2000"></td>
                                                 <td><input  class="form-control" name="masking_price[]" value="0.5000"></td>
                                             </tr>
                                     </tbody>

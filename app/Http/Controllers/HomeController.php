@@ -6,6 +6,7 @@ use App\BulkService;
 use App\Common;
 use App\Models\Campaign;
 use App\Models\DynamicSMS;
+use App\Models\APIStatus;
 use App\Models\OperatorBalance;
 use App\Models\RatePlan;
 use App\Models\sms_senders;
@@ -37,6 +38,28 @@ class HomeController extends Controller
     public function index()
     {
         return view('home');
+    }
+
+    public static function RanksTelBalance()
+    {
+        $parameteres = [
+            'username' => 'AJRA-TECH',
+            'pass' => "R1nQt5!474g#su@jan",
+            'cmd' => 'credits',
+        ];
+
+        $url = "http://api.rankstelecom.com/api/command?" . http_build_query($parameteres);
+        $res = SendSMS::curlFunc($url);
+        $output = $res/100;
+
+        //$balance = SendSMS::RanksTelBalance();
+        APIStatus::where('name','rankstel')->update([
+            'updated_at' => date('Y-m-d H:i:s'),
+            'credits' => $output,
+            
+        ]);
+        return $output;
+
     }
 
 
@@ -235,7 +258,7 @@ class HomeController extends Controller
  
     public static function smsSending() {
 		ini_set('max_execution_time', 0);
-        $limit = 50;
+        $limit = 25;
         
         $campaigns =  Campaign::select('id', 'dynamic_sms', 'sms_count', 'campaign_name')
         ->where('status', 4)// 2
@@ -398,6 +421,13 @@ class HomeController extends Controller
         // }
 
         return $output;
+    }
+
+
+
+    public static function getUserSMSsummary2($user_id){
+        $sms_summery = DB::Select("SELECT operator, SUM(sms_count) FROM sms_transactions WHERE user_id=$user_id AND DATE_FORMAT(created_at, '%Y-%m-%d')='".date("Y-m-d")."' GROUP BY operator");
+        //dd($sms_summery);
     }
 
    

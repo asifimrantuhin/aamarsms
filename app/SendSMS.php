@@ -13,6 +13,7 @@ use App\Models\Configuration;
 use App\Models\sms_senders;
 use App\Models\sms_transactions;
 use App\Models\User;
+use App\Models\APIStatus;
 
 ini_set('max_execution_time', 0);
 date_default_timezone_set('Asia/Dhaka');
@@ -111,31 +112,45 @@ class SendSMS extends Model {
                             $res = json_decode($response);
                             
                         } else {
-                            $getOperator = User::whereId($campaigns->user_id)->first();
-                            $getUserSelectedOperator = $getOperator->operator;
-                            $global_api = Configuration::pluck('priority_1')->first();
 
-                            $api_name = ($getUserSelectedOperator !='' ? $getUserSelectedOperator : $global_api);
-                            $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
-                            $vendor_api = $api_name;
-                            $res = json_decode($response);
-                            
-                            if (isset($res->success) && $res->success == 0) {
-                            # Priority 2
-                                $api_name = Configuration::pluck('priority_2')->first();
-                                //dd($api_name);
+                            if($campaigns->sender){
+                                $selectOpr = DB::table('nonmasking')->where('name', $campaigns->sender)->first();
+                                $api_name = $selectOpr->operator_name;
                                 $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
                                 $vendor_api = $api_name;
                                 $res = json_decode($response);
 
+                            }else{
+
+
+                                $getOperator = User::whereId($campaigns->user_id)->first();
+                                $getUserSelectedOperator = $getOperator->operator;
+                                $global_api = Configuration::pluck('priority_1')->first();
+
+                                $api_name = ($getUserSelectedOperator !='' ? $getUserSelectedOperator : $global_api);
+                                $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                                $vendor_api = $api_name;
+                                $res = json_decode($response);
+                                
                                 if (isset($res->success) && $res->success == 0) {
-                                # Priority 3
-                                    $api_name = Configuration::pluck('priority_3')->first();
+                                # Priority 2
+                                    $api_name = Configuration::pluck('priority_2')->first();
+                                    //dd($api_name);
                                     $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
                                     $vendor_api = $api_name;
                                     $res = json_decode($response);
+
+                                    if (isset($res->success) && $res->success == 0) {
+                                    # Priority 3
+                                        $api_name = Configuration::pluck('priority_3')->first();
+                                        $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                                        $vendor_api = $api_name;
+                                        $res = json_decode($response);
+                                    }
                                 }
                             }
+
+
                         }
 
                         
@@ -524,6 +539,7 @@ class SendSMS extends Model {
             $getresult['msg'] = 'SMS sent successfully';
             $getresult['smsid'] = '';
             $getresult['destination'] = '';
+            SendSMS::gpBalance();
         }
 
         header('Content-Type: application/json');
@@ -535,7 +551,8 @@ public static function gpBalance() {
         $user = 'AJRATECADMN78';
         $pass = 'Ajragp@1';
 
-        	$request_body = '{ "username": "' . $user . '", "password": "' . $pass . '", "apicode": "3", "msisdn":"0", "countrycode": "0", "cli": "0", "messagetype": "0", "message": "0", "messageid": "0" }';
+
+        $request_body = '{ "username": "' . $user . '", "password": "' . $pass . '", "apicode": "3", "msisdn":"0", "countrycode": "0", "cli": "0", "messagetype": "0", "message": "0", "messageid": "0" }';
 
         //echo $request_body;
         $curl = curl_init();
@@ -585,8 +602,6 @@ public static function gpBalance() {
 # Curl function
 
     public static function curlFunc($url) {
-        //echo $url;exit;
-        // create curl resource
         $ch = curl_init();
 
         curl_setopt_array($ch, array(
@@ -913,7 +928,7 @@ public static function gpBalance() {
 
     }
 
-    public static function ranksTelBulkSMS($contacts_arr){
+    public static function ranksTelBulkSMS($contacts_arr, $senderId=''){
         $smsArray =[];
         $smstext = '';
         foreach ($contacts_arr as $value) {
@@ -934,7 +949,7 @@ public static function gpBalance() {
                     'password'=>'R1nQt5!474g#su@jan'
                 ),
                 'messages'=>array(array(
-                    'sender'=> '8809617609821',
+                    'sender'=> ($senderId ? $senderId : '8809617609821'),
                     'text'=> $smstext,
                     'type' => 'longSMS',
                     'datacoding'=> 8, 
@@ -950,7 +965,7 @@ public static function gpBalance() {
                     'password'=>'R1nQt5!474g#su@jan'
                 ),
                 'messages'=>array(array(
-                    'sender'=> '8809617609821',
+                    'sender'=> ($senderId ? $senderId : '8809617609821'),
                     'text'=> $smstext,
                     'type' => 'longSMS',
                     'recipients'=> $smsArray
@@ -962,7 +977,7 @@ public static function gpBalance() {
 
         
         $jsondata = json_encode($data);
-        //echo $jsondata;
+        //echo $jsondata;exit;
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'http://api.rankstelecom.com/api/v3/sendsms/json',
@@ -981,6 +996,15 @@ public static function gpBalance() {
         $response = curl_exec($curl);
         curl_close($curl);
         $response = json_decode($response);
+
+        $balance = SendSMS::RanksTelBalance();
+        APIStatus::where('name','rankstel')->update([
+            'updated_at' => date('Y-m-d H:i:s'),
+            'credits' => $balance,
+            
+        ]);
+
+
         //print_r($response);
         $getresult['success'] = 0;
         $getresult['msg'] = 'SMS failed';
@@ -997,6 +1021,21 @@ public static function gpBalance() {
         }
         header('Content-Type: application/json');
         return json_encode($getresult);
+    }
+
+    public static function RanksTelBalance()
+    {
+        $parameteres = [
+            'username' => 'AJRA-TECH',
+            'pass' => "R1nQt5!474g#su@jan",
+            'cmd' => 'credits',
+        ];
+
+        $url = "http://api.rankstelecom.com/api/command?" . http_build_query($parameteres);
+        $res = SendSMS::curlFunc($url);
+        $output = ($res/100);
+        return $output;
+
     }
 
 
@@ -1091,11 +1130,10 @@ public static function gpBalance() {
                 $response = SendSMS::TeleTalkApi($contacts_arr, $mask);
                 break;
             case "grameenphone":
-                //$response = SendSMS::gpApiNew($contacts_arr, $mask,$sms_type);
-                $response = SendSMS::ranksTelBulkSMS($contacts_arr);
+                $response = SendSMS::gpApiNew($contacts_arr, $mask,$sms_type);
                 break;
             case "rankstel":
-                $response = SendSMS::ranksTelBulkSMS($contacts_arr);
+                $response = SendSMS::ranksTelBulkSMS($contacts_arr, $mask);
                 break;
             // case "mirtel":
             //     $response = SendSMS::mirTel($contacts_arr,$sms_type);
@@ -1104,7 +1142,6 @@ public static function gpBalance() {
             //     $response = SendSMS::adnTel($contacts_arr);
             //     break;
             default:
-            // echo "Your favorite color is neither red, blue, nor green!";
         }
 
        

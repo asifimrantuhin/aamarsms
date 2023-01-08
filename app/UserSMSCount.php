@@ -158,4 +158,15 @@ class UserSMSCount extends Model
 
         
     }
+
+
+
+
+    public static function getUserSMSsummary2($user_id){
+        $sms_summery = DB::Select("SELECT operator, SUM(sms_count) FROM sms_transactions WHERE user_id=$user_id AND DATE_FORMAT(created_at, '%Y-%m-%d')='".date("Y-m-d")."' GROUP BY operator");
+
+        
+        
+
+    }
 }

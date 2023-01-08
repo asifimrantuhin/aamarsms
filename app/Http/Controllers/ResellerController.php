@@ -31,7 +31,7 @@ class ResellerController extends Controller
         $data = User::where('id',$user_id)->pluck('mask')->first();
         $ms = explode(',', trim($data));
         $total_mask = count($ms);
-        $daily_campaign = Campaign::where('user_id',$user_id)->whereDate('created_at', Carbon::today())->count();
+        $daily_campaign =sms_transactions::where('user_id',$user_id)->whereDate('created_at', Carbon::today())->sum('sms_count');
 
         $operator['gp'] = sms_transactions::where('user_id',$user_id)->where('operator','=','GP')->count();
         $operator['robi'] = sms_transactions::where('user_id',$user_id)->where('operator','=','RB')->count();
@@ -88,7 +88,7 @@ class ResellerController extends Controller
         $chartdata['failed']   = implode(',', $fs);
 
 
-        return view('reseller.dashboard',compact('total_users','total_recharge','total_mask','daily_campaign'))->with('chartdata', $chartdata)->with('operator',$operator);
+        return view('reseller/dashboard',compact('total_users','total_recharge','total_mask','daily_campaign'))->with('chartdata', $chartdata)->with('operator',$operator);
     }
 
     public function profile()

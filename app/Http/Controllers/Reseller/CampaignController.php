@@ -8,6 +8,7 @@ use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\Group;
 use App\Models\Mask;
+use App\Models\NonMask;
 use App\Models\RatePlan;
 use App\Models\Recharge;
 use App\Models\sms_senders;
@@ -31,11 +32,12 @@ class CampaignController extends Controller
     {
         $users= User::where('parent_user',Auth::user()->id)->get();
         $masks = Mask::whereIn('id',explode(",", Auth::user()->mask))->get();
+        $nonmasks = NonMask::whereIn('id',explode(",", Auth::user()->nonmasking))->get();
         $templates = Template::where('user_id',Auth::user()->id)->paginate('5');
         $campaigns = Campaign::where('user_id',Auth::user()->id)->orderBy('id','DESC')->paginate(10);
         $groups = Group::where(['user_id' => Auth::user()->id,'status' => 1])->where('type',1)->get();
-    
-        return view('reseller.management.campaign.new_campaign',compact('users','masks','templates','campaigns','groups'));
+
+        return view('reseller/management/campaign/new_campaign',compact('users','masks','templates','campaigns','groups','nonmasks'));
     }
 
     /**
@@ -100,8 +102,11 @@ class CampaignController extends Controller
 
         $parent_user = User::whereId($user_id)->pluck('parent_user')->first();
         $admin_users = Common::getAdminUsersID();
-        $admin_users = (array) $admin_users;
+
+        //$admin_users = (array) $admin_users;
+        //print_r($admin_users);
         $isadmin = in_array($parent_user, $admin_users);
+        //var_dump($isadmin);
         $totalcost = 0;
         $resellercost = 0;
 

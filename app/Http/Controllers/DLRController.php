@@ -77,6 +77,8 @@ class DLRController extends Controller
 
 
     public function campaignwise_dlr(Request $request, $campaignid){
+        ini_set("memory_limit", "-1");
+        ini_set("max_execution_time", 0);
 
         $list = DB::table('sms_transactions')
         ->select('sms_transactions.mobile_number as mobile_number', 'sms_transactions.created_at as created_at', 'sms_transactions.operator as operator', 'sms_transactions.price as price', 'campaigns.text_body as text_body')
@@ -124,7 +126,9 @@ class DLRController extends Controller
 
 
     public function deliverylog(Request $request){
-        $fromdate = date('Y-m-d', strtotime("-3 months"));
+        ini_set("memory_limit", "-1");
+        ini_set("max_execution_time", 0);
+        $fromdate = date('Y-m-d', strtotime("-1 months"));
         $todate = date('Y-m-t');
         if ($request->ajax()) {
             $list = DB::table('sms_transactions')
@@ -145,7 +149,9 @@ class DLRController extends Controller
 
 
     public function reseller_selfdeliverylog(Request $request){
-        $fromdate = date('Y-m-d', strtotime("-3 months"));
+        ini_set("memory_limit", "-1");
+        ini_set("max_execution_time", 0);
+        $fromdate = date('Y-m-d', strtotime("-1 months"));
         $todate = date('Y-m-t');
          if ($request->ajax()) {
             $list = DB::table('sms_transactions')
@@ -165,8 +171,10 @@ class DLRController extends Controller
     }
 
     public function resellers_userdeliverylog(Request $request){
+        ini_set("memory_limit", "-1");
+        ini_set("max_execution_time", 0);
         $userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
-        $fromdate = date('Y-m-d', strtotime("-3 months"));
+        $fromdate = date('Y-m-d', strtotime("-1 months"));
         $todate = date('Y-m-t');
         if ($request->ajax()) {
             $list = DB::table('sms_transactions')
@@ -183,8 +191,11 @@ class DLRController extends Controller
     }
 
     public function admin_userdeliverylog(Request $request){
+        ini_set("memory_limit", "-1");
+        ini_set("max_execution_time", 0);
+
         //$userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
-        $fromdate = date('Y-m-d', strtotime("-3 months"));
+        $fromdate = date('Y-m-d', strtotime("-1 months"));
         $todate = date('Y-m-t');
          if ($request->ajax()) {
             $list = DB::table('sms_transactions')
@@ -195,6 +206,7 @@ class DLRController extends Controller
             ->whereBetween('sms_transactions.created_at',[$fromdate, $todate])
             ->orderBy('sms_transactions.created_at', 'DESC')
             ->get();
+
             return DataTables::of($list)->addIndexColumn()->make(true);
         }
         return view('dlr/admin/userwise_deliverylog');

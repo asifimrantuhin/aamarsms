@@ -249,7 +249,7 @@ class Common extends Model {
 
             try {
 
-                $file_get = file_get_contents('http://api.rankstelecom.com/api/command?user=AZRA-TECH&password=AZRA@123&cmd=CREDITS');
+                $file_get = file_get_contents('http://api.rankstelecom.com/api/command?user=AJRA-TECH&password=R1nQt5!474g#su@jan&cmd=CREDITS');
 
                 if (isset($file_get)) {
                     return ($file_get) ? (trim($file_get) / 100) : 0;
@@ -462,7 +462,8 @@ class Common extends Model {
     public static function getAdminUsersID() {
         $userID = DB::table('users')
                 ->where('role', 1)
-                ->pluck('id');
+                ->pluck('id')->toArray();
+        
         return $userID;
     }
 

@@ -327,19 +327,21 @@
                                     <option value="{{$mask->id}}">{{$mask->name}}</option>
                                     @endforeach
                                   </select>
-
-                                {{-- <div class="row">
-                                    @foreach($masks as $mask)  
-                                    <div class="col-sm-6 mg-t-10 mg-sm-t-0">
-                                        <label class="ckbox">
-                                          <input name="mask[]" type="checkbox" value="{{$mask->id}}">
-                                          <span>{{$mask->mask_name}}</span>
-                                        </label>
-                                    </div>
-                                    @endforeach
-                                </div> --}}
                             </div>
                         </div>
+
+                        <div class="row mg-t-20">
+                            <label class="col-sm-4 form-control-label">Assaign SenderID: <span class="tx-danger">*</span></label>
+                            <div class="col-sm-8">
+                                <select class="selectpicker" name="nonmask[]" multiple data-live-search="true">
+                                    @foreach($nonmasks as $nonmask)
+                                    <option value="{{$nonmask->id}}">{{$nonmask->name}}</option>
+                                    @endforeach
+                                  </select>
+                            </div>
+                        </div>
+
+
 
                         
                         <div class="row mg-t-20">

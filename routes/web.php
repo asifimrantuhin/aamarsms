@@ -68,6 +68,9 @@ Route::post('/verifyotp', '\App\Http\Controllers\Auth\RegisterController@otp');
 
 Route::get('sms-sender', [HomeController::class, 'smsSender']); // Single SMS
 Route::get('sms-sending', [HomeController::class, 'smsSending']); // Bulk SMS
+Route::get('sms-sending2', [HomeController::class, 'smsSending']); // Bulk SMS
+Route::get('sms-sending3', [HomeController::class, 'smsSending']); // Bulk SMS
+Route::get('sms-sending4', [HomeController::class, 'smsSending']); // Bulk SMS
 Route::get('bulk-sms-sending', [HomeController::class, 'smsSending']);
 Route::get('price-sync', [HomeController::class, 'priceSync']); // Price
 Route::get('callback_response_push', [HomeController::class, 'callback_response_push']); // CallBack
@@ -100,6 +103,7 @@ Route::post('/ipn', [SslCommerzPaymentController::class, 'ipn']);
 
 // API Download
 Route::get('/downloadapi', [HomeController::class, 'download']);
+Route::get('/rankstel-balance', [HomeController::class, 'RanksTelBalance']);
 
 
 // Admin Route Group
@@ -214,6 +218,17 @@ Route::group(['prefix' => 'admin', 'middleware'=>['admin','auth']], function () 
     Route::get('delete_mask/{id}', [MaskController::class, 'destroy']);
     Route::get('/mask_status/{id}/{status}', [MaskController::class, 'Status']);
     // Mask Management
+
+    // NON Mask Management
+    Route::get('nonmask', [MaskController::class,'manage_nonmask']);
+    Route::post('nonmask/store', [MaskController::class, 'nonmask_store']);
+    Route::get('viewnonmask/{id}', [MaskController::class, 'nonmask_view']);
+    Route::get('delete_nonmask/{id}', [MaskController::class, 'nonmask_destroy']);
+    Route::get('/nonmask_status/{id}/{status}', [MaskController::class, 'nonmask_status']);
+    // NON Mask Management
+
+
+
 
     // Contact Group Management
     Route::get('contact_group', [GroupController::class, 'index']);

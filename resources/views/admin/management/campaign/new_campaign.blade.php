@@ -120,6 +120,23 @@
             </nav>
         </div>
 
+        @if ($message = Session::get('success'))
+            <div class="alert alert-success" role="alert">
+                <div class="d-flex align-items-center justify-content-start">
+                    <i class="icon ion-ios-checkmark alert-icon tx-24 mg-t-5 mg-xs-t-0"></i>
+                    <span>{{ $message }}</span>
+                </div>
+            </div>
+        @endif
+        @if ($message = Session::get('error'))
+            <div class="alert alert-bordered alert-danger" role="alert">
+                <div class="d-flex align-items-center justify-content-start">
+                    <i class="icon ion-ios-close alert-icon tx-24"></i>
+                    <span>{{ $message }}</span>
+                </div><!-- d-flex -->
+            </div>
+        @endif
+
         <br class="br-pagebody">
             <div class="loading">Loading&#8230;</div>
 
@@ -142,6 +159,51 @@
                                         </select>
                                     </div>
                                 </div></br>
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <label class="form-control-label"><strong>Mask Option</strong></label>
+                                        <select class="form-control" id="mask" onchange="MaskCheck(this);"
+                                            name="mask">
+                                            <option value="0">Non Mask</option>
+                                            <option value="1">Mask</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label class="form-control-label"><strong>SenderID/Masking</strong></label>
+                                        <select id="MaskingShow" style="display: none" class="form-control"
+                                            name="senderid">
+                                            <option value="">Select Mask</option>
+                                            @foreach ($masks as $mask)
+                                                <option value="{{ $mask->name }}">{{ $mask->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <select id="SenderIdShow" style="display: block" class="form-control"
+                                            name="senderid">
+                                            <option value="">Default</option>
+                                            @foreach ($nonmasks as $mask)
+                                                <option value="{{ $mask->name }}">{{ $mask->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label class="form-control-label"><strong>Schedule Date Time &nbsp;</strong>
+                                            <div class="arrowpopup" onmouseover="myFunction()" style="color:#428bca" title="Show Details"><strong> (?) </strong>
+                                                <span class="tooltiptext" id="tooltipdemo">System will send SMS to your seleceted Time.
+                                                    Choose a specific time to send sms
+                                                </span>
+                                            </div>
+                                               </label>
+                                        <input name="schedule" id="schedule" type="datetime-local" class="form-control"
+                                            placeholder="YYYY-MM-DD HH:MM" />
+
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <!-- <label class="form-control-label"><strong>Campaign Name</strong></label> -->
+                                        <input type="hidden" name="campaign_name" class="form-control"
+                                            placeholder="Enter Campaign Name" id="campaign-name">
+                                    </div>
+                                </div></br>
+
 
                                 <div class="row">
                                     <div class="col-lg-8">
@@ -203,43 +265,7 @@
                                 </div>
 
                                 {{-- 2nd Row --}}
-                                <div class="row">
-                                    <div class="col-lg-3">
-                                        <label class="form-control-label"><strong>Mask Option</strong></label>
-                                        <select class="form-control" id="mask" onchange="MaskCheck(this);"
-                                            name="mask">
-                                            <option value="0">Non Mask</option>
-                                            <option value="1">Mask</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-lg-3">
-                                        </br>
-                                        <select id="SenderIdShow" style="display: none" class="form-control"
-                                            name="senderid">
-                                            <option value="">Select Mask</option>
-                                            @foreach ($masks as $mask)
-                                                <option value="{{ $mask->name }}">{{ $mask->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-lg-3">
-                                        <label class="form-control-label"><strong>Schedule Date Time &nbsp;</strong>
-                                            <div class="arrowpopup" onmouseover="myFunction()" style="color:#428bca" title="Show Details"><strong> (?) </strong>
-                                                <span class="tooltiptext" id="tooltipdemo">System will send SMS to your seleceted Time.
-                                                    Choose a specific time to send sms
-                                                </span>
-                                            </div>
-                                               </label>
-                                        <input name="schedule" id="schedule" type="datetime-local" class="form-control"
-                                            placeholder="YYYY-MM-DD HH:MM" />
-
-                                    </div>
-                                    <div class="col-lg-3">
-                                        <!-- <label class="form-control-label"><strong>Campaign Name</strong></label> -->
-                                        <input type="hidden" name="campaign_name" class="form-control"
-                                            placeholder="Enter Campaign Name" id="campaign-name">
-                                    </div>
-                                </div>
+                                
 
                                 {{-- Button Row --}}
 
@@ -502,9 +528,11 @@ tt.classList.toggle("show");
         <script type="text/javascript">
             function MaskCheck(that) {
                 if (that.value == "1") {
-                    document.getElementById("SenderIdShow").style.display = "block";
-                } else {
+                    document.getElementById("MaskingShow").style.display = "block";
                     document.getElementById("SenderIdShow").style.display = "none";
+                } else {
+                    document.getElementById("SenderIdShow").style.display = "block";
+                    document.getElementById("MaskingShow").style.display = "none";
                 }
             }
 
@@ -562,7 +590,7 @@ tt.classList.toggle("show");
                     formdata.append('campaign_message', $("#campaign_message").val());
                     formdata.append('user_id', $("#user_id").val());
                     formdata.append('mask', $("#mask").val());
-                    formdata.append('senderid', ($("#mask").val() == 0) ? '' : $("#SenderIdShow").val());
+                    formdata.append('senderid', $("#SenderIdShow").val());
                     formdata.append('schedule', $("#schedule").val());
                     formdata.append('upload_type', $("#upload_type").val());
                     formdata.append('raw_msisdn', $("#raw_msisdn").val());
@@ -610,7 +638,7 @@ tt.classList.toggle("show");
             formdata.append('campaign_message', $("#campaign_message").val());
             formdata.append('user_id', $("#user_id").val());
             formdata.append('mask', $("#mask").val());
-            formdata.append('senderid', ($("#mask").val() == 0) ? '' : $("#SenderIdShow").val());
+            formdata.append('senderid', $("#SenderIdShow").val());
             formdata.append('schedule', $("#schedule").val());
             formdata.append('upload_type', $("#upload_type").val());
             formdata.append('raw_msisdn', $("#raw_msisdn").val());
@@ -641,7 +669,7 @@ tt.classList.toggle("show");
                                 });
                                 $('#camp_name').text(data.campaign_name);
                                 if ($("#mask").val() == '1') {
-                                    $('#senderid').text($("#SenderIdShow").val());
+                                    $('#senderid').text($("#MaskingShow").val());
                                 } else {
                                     $('#senderid').text('Non-Masking');
                                 }

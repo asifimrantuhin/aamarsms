@@ -6,6 +6,7 @@ use App\Common;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Mask;
+use App\Models\NonMask;
 use App\Models\Recharge;
 use App\Models\sms_senders;
 use App\Models\Template;
@@ -35,11 +36,12 @@ class CampaignController extends Controller
         // $users= User::where('parent_user',Auth::user()->id)->get();
         $users= User::get();
         $masks = Mask::get();
+        $nonmasks = NonMask::get();
         $templates = Template::where('user_id',Auth::user()->id)->paginate('5');
         $campaigns = Campaign::where('user_id',Auth::user()->id)->orderBy('id','DESC')->paginate(10);
         $groups = Group::where('type',1)->get();
     
-        return view('admin.management.campaign.new_campaign',compact('users','masks','templates','campaigns','groups'));
+        return view('admin/management/campaign/new_campaign',compact('users','masks','templates','campaigns','groups','nonmasks'));
     }
 
     public function downloadFile(Request $request)
@@ -197,18 +199,20 @@ class CampaignController extends Controller
             }
         }
 
+        if ($isadmin) {
+            //for admin
+        } else {
+            $balance = $this->currentBalance($user_id);
 
-        $balance = $this->currentBalance($user_id);
-
-        if ($balance < $totalcost) {
-           // echo "hello2";exit;
-            $request->session()->flash('error', 'You do not have sufficiant balance, your sms cost ' . $totalcost . ' but your balance is ' . $balance . ', Please reacharge first.');
-            return response()->json([
-                        'msg_type' => 'error',
-                        'msg' => 'You do not have sufficiant balance, your sms cost ' . $totalcost . ' but your balance is ' . $balance . ', Please reacharge first.'
-            ]);
+            if ($balance < $totalcost) {
+               // echo "hello2";exit;
+                $request->session()->flash('error', 'You do not have sufficiant balance, your sms cost ' . $totalcost . ' but your balance is ' . $balance . ', Please reacharge first.');
+                return response()->json([
+                            'msg_type' => 'error',
+                            'msg' => 'You do not have sufficiant balance, your sms cost ' . $totalcost . ' but your balance is ' . $balance . ', Please reacharge first.'
+                ]);
+            }
         }
-
 
         if ($isadmin) {
             //for admin

@@ -13,6 +13,7 @@ use App\Models\Attendence;
 use App\Models\Comission;
 use App\Models\FieldCustomer;
 use App\Models\Mask;
+use App\Models\NonMask;
 use App\Models\RatePlan;
 use App\Models\Recharge;
 use App\Models\Template;
@@ -35,6 +36,7 @@ class UserManagementController extends Controller
     {
         $users= Auth::user();
         $masks = Mask::orderBy('id','DESC')->get();
+        $nonmasks = NonMask::orderBy('id','DESC')->get();
 
         $name = $request->get('name');
         $email = $request->get('email');
@@ -82,7 +84,7 @@ class UserManagementController extends Controller
         $executive = User::where('role',4)->get();
         $reseller = User::where('role',2)->get();
 
-        return view('admin.management.user.index',compact('userlist','users','masks','executive','reseller'));
+        return view('admin.management.user.index',compact('userlist','users','masks','nonmasks','executive','reseller'));
     }
 
     public function Status($id, $status) {
@@ -110,13 +112,21 @@ class UserManagementController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request);
+        //dd($request->input());
       
-       if (!empty($request->input('mask'))) {
+    if ($request->mask) {
         $mask = implode(",", $request->input('mask'));
     } else {
         $mask = '';
     }
+
+    if ($request->nonmask) {
+        $nonmask = implode(",", $request->input('nonmask'));
+    } else {
+        $nonmask = '';
+    }
+
+
 
     $users= Auth::user();
     $rules = array(
@@ -124,7 +134,7 @@ class UserManagementController extends Controller
         'usertype' => 'required',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|min:6|max:30',
-        'mobile' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|size:11|unique:users',
+        'mobile' => 'required',
         'domain' => 'required',
         'status' => 'required'
     );
@@ -137,6 +147,8 @@ class UserManagementController extends Controller
         return back();
     }
 
+    //echo "pass";exit;
+
     $form_data = array(
         'parent_user'    =>  ($request->input('parent_user') != '' ? $request->input('parent_user') : $users->id),
         'sales_person'   =>  $request->input('sales_person'),
@@ -145,6 +157,7 @@ class UserManagementController extends Controller
         'domain'         =>  $request->input('domain'),
         'role'           =>  $request->input('usertype'),
         'mask'           =>  $mask,
+        'nonmasking'     =>  $nonmask,
         'email'          =>  $request->input('email'),
         'mobile'         =>  $request->input('mobile'),
         'password'       =>  Hash::make($request->input('password')),
@@ -245,9 +258,10 @@ class UserManagementController extends Controller
         $maskslist = Mask::where('status', 1)->orderBy('id','DESC')->get();
         $usermask = explode(',', $customers[0]->mask);
 
+        $nonmaskslist = NonMask::where('status', 1)->orderBy('id','DESC')->get();
+        $senderIDs = explode(',', $customers[0]->nonmask);
 
-
-        return view('admin.management.user.edit-user',compact('customers','users','maskslist','usermask','rates'));
+        return view('admin/management/user/edit-user',compact('customers','users','maskslist','usermask','rates','nonmaskslist', 'senderIDs'));
     }
 
     /**
@@ -259,8 +273,15 @@ class UserManagementController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if ($request->input('mask')) {
+        if ($request->mask) {
             $masking = implode(",", $request->input('mask'));
+        }else{
+            $masking = '';
+        }
+        if ($request->nonmask) {
+            $nonmasking = implode(",", $request->input('nonmask'));
+        }else{
+            $nonmasking='';
         }
 
         $data = array(
@@ -274,7 +295,8 @@ class UserManagementController extends Controller
             'status' => $request->input('status'),
             'api_enabled' => $request->input('api_enabled'),
             'operator' => $request->input('route'),
-            'mask' => (isset($masking) ? $masking : ''),
+            'mask' => $masking,
+            'nonmasking' => $nonmasking,
         );
         $user = new User();
         $user->where('id', $id)->update($data);

@@ -142,30 +142,41 @@ class BulkService extends Model {
                 
             } else{
 
-                $getOperator = User::whereId($campaigns->user_id)->first();
-                $getUserSelectedOperator = $getOperator->operator;
-                $global_api = Configuration::pluck('priority_1')->first();
 
-                $api_name = ($getUserSelectedOperator !='' ? $getUserSelectedOperator : $global_api);
-                $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
-                $vendor_api = $api_name;
-                $res = json_decode($response);
-
-                
-                if (isset($res->success) && $res->success == 0) {
-                # Priority 2
-                    $api_name = Configuration::pluck('priority_2')->first();
-                    //dd($api_name);
+                if($campaigns->sender){
+                    $selectOpr = DB::table('nonmasking')->where('name', $campaigns->sender)->first();
+                    $api_name = $selectOpr->operator_name;
                     $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
                     $vendor_api = $api_name;
                     $res = json_decode($response);
 
+                }else{
+
+                    $getOperator = User::whereId($campaigns->user_id)->first();
+                    $getUserSelectedOperator = $getOperator->operator;
+                    $global_api = Configuration::pluck('priority_1')->first();
+
+                    $api_name = ($getUserSelectedOperator !='' ? $getUserSelectedOperator : $global_api);
+                    $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                    $vendor_api = $api_name;
+                    $res = json_decode($response);
+
+                    
                     if (isset($res->success) && $res->success == 0) {
-                    # Priority 3
-                        $api_name = Configuration::pluck('priority_3')->first();
+                    # Priority 2
+                        $api_name = Configuration::pluck('priority_2')->first();
+                        //dd($api_name);
                         $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
                         $vendor_api = $api_name;
                         $res = json_decode($response);
+
+                        if (isset($res->success) && $res->success == 0) {
+                        # Priority 3
+                            $api_name = Configuration::pluck('priority_3')->first();
+                            $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                            $vendor_api = $api_name;
+                            $res = json_decode($response);
+                        }
                     }
                 }
             }
@@ -210,6 +221,7 @@ class BulkService extends Model {
                             $campaigns->mask == 1 ? $type = 1 : $type = 2;
 
                             UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            //UserSMSCount::getUserSMSsummary2($operator,$user_id,$sms_count,$type);
 
                             if ($campaigns->dynamic_sms == 1) {
                                 DB::table('dynamic_sms')->where('id', $contact->id)->delete();

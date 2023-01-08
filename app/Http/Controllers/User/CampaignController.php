@@ -9,6 +9,7 @@ use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\Group;
 use App\Models\Mask;
+use App\Models\NonMask;
 use App\Models\Recharge;
 use App\Models\sms_senders;
 use App\Models\Template;
@@ -32,12 +33,13 @@ class CampaignController extends Controller
     {
         $users= Auth::user();
         $masks = Mask::whereIn('id',explode(",", $users->mask))->get();
+        $nonmasks = NonMask::whereIn('id',explode(",", $users->nonmasking))->get();
         $count = $masks->count();
         $templates = Template::where('user_id',$users->id)->paginate('5');
         $campaigns = Campaign::where('user_id', $users->id)->orderBy('id', 'DESC')->paginate(5);
         $groups = Group::where('user_id', $users->id)->where('type',1)->get();
     
-        return view('user.management.campaign.new_campaign',compact('users','masks','count','templates','campaigns','groups'));
+        return view('user/management/campaign/new_campaign',compact('users','masks','count','templates','campaigns','groups','nonmasks'));
     }
 
     /**
@@ -95,7 +97,7 @@ class CampaignController extends Controller
 
         $parent_user = Auth::user()->parent_user;
         $admin_users = Common::getAdminUsersID();
-        $admin_users = (array) $admin_users;
+        //$admin_users = (array) $admin_users;
         $isadmin = in_array($parent_user, $admin_users);
         $totalcost = 0;
         $resellercost = 0;
@@ -434,11 +436,11 @@ class CampaignController extends Controller
         $balance = $this->currentBalance();
         $rem_bal = ($balance - $totalcost);
 
-        if($totalcon > 10 && $unicode == false){
-            return response()->json([
-                    'success' => false
-            ]);
-        }
+        // if($totalcon > 10 && $unicode == false){
+        //     return response()->json([
+        //             'success' => false
+        //     ]);
+        // }
 
 
          if ($isadmin) {
@@ -621,7 +623,7 @@ class CampaignController extends Controller
             $data = array();
             $time = date('Y-m-d H:i:s');
             $pn = $this->formatPhoneNumber($number);
-            if ($pn->sts != '3') {
+            if ($pn->sts != '3' && $pn->opCd !='') {
                 $data = [
                     'group_id' => $groupid,
                     'user_id' => $user_id,
