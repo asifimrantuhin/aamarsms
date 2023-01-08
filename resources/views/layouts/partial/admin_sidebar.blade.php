@@ -155,6 +155,7 @@
         </a><!-- br-menu-link -->
         <ul class="br-menu-sub nav flex-column">
             <li class="nav-item"><a href="{{url('admin/mask')}}" class="nav-link">Mask Management</a></li>
+            <li class="nav-item"><a href="{{url('admin/nonmask')}}" class="nav-link">SenderID Management</a></li>
             <li class="nav-item"><a href="{{url('admin/settings')}}" class="nav-link">Vendor Configurations</a></li>
             <li class="nav-item"><a href="{{url('admin/api')}}" class="nav-link">API Management </a></li> 
             <li class="nav-item"><a href="{{url('admin/revenue_report')}}" class="nav-link">Revenue Report</a></li> 
