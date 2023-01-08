@@ -60,7 +60,7 @@
                                     <tr>
                                         <th>Serial No</th>
                                         <th>SenderID</th>
-                                        <th>Reseller</th>
+                                        <th>Operator</th>
                                         <th>Created Date</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -69,11 +69,12 @@
                             </thead>
                             <tbody>
                                 @if(count($masks) > 0)
+                                @php $i=1; @endphp
                                 @foreach ($masks as $mask)
                                 <tr>
-                                    <td>{{ $mask->id }}</td>
+                                    <td>{{ $i++ }}</td>
                                     <td>{{ $mask->name }}</td>
-                                    <td>{{ $mask->user_name }}</td>
+                                    <td>{{ ucfirst($mask->operator_name) }}</td>
                                     <td>{{ date('d-m-Y', strtotime($mask->created_at)) }}</td>
                                     <td>
                                         @if($mask->status)
