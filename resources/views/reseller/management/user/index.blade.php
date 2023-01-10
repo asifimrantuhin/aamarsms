@@ -21,7 +21,7 @@
                                 <a href="" class="btn btn-primary" data-toggle="modal" data-target="#modaldemo3">Create User <i class="fa fa-plus"></i></a>
 
                               <input type="text" class="form-control mg-md-l-10" name="name" placeholder="Search with Name">
-                              <input type="text" class="form-control mg-md-l-10" name="email" placeholder="Search with Email">
+                              <input type="text" class="form-control mg-md-l-10" name="email" placeholder="Search with Username">
                               <input type="text" class="form-control mg-md-l-10" name="mobile" placeholder="Search with Phone">
                               <select name="userrole"  class="form-control mg-md-l-10">
                                   <option value="">Select Role</option>
@@ -198,9 +198,9 @@
                         </div>
                         <!-- row -->
                         <div class="row mg-t-20">
-                            <label class="col-sm-4 form-control-label">Email: <span class="tx-danger">*</span></label>
+                            <label class="col-sm-4 form-control-label">Username: <span class="tx-danger">*</span></label>
                             <div class="col-sm-8 mg-t-10 mg-sm-t-0">
-                                <input type="email" name="email" class="form-control" placeholder="Enter email address" required />
+                                <input type="text" name="email" class="form-control" placeholder="Enter username" required />
                                 @if ($errors->has('email'))
                             <span class="help-block">
                             <span class="badge badge-danger">{{ $errors->first('email') }}</span>

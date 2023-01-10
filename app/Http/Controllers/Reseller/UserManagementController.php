@@ -26,7 +26,7 @@ class UserManagementController extends Controller
         $userlist = User::where('parent_user',$users->id)->orderBy('id','DESC')->paginate(20);
         $masks = Mask::orderBy('id','DESC')->get();
   
-        return view('reseller.management.user.index',compact('userlist','users','masks'));
+        return view('reseller/management/user/index',compact('userlist','users','masks'));
     }
 
     public function Status($id, $status) {
@@ -65,7 +65,7 @@ class UserManagementController extends Controller
     $rules = array(
         'username' => 'required',
         'usertype' => 'required',
-        'email' => 'required|string|email|max:255|unique:users',
+        'email' => 'required|string|max:255|unique:users',
         'password' => 'required|min:6|max:30',
         'mobile' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|size:11|unique:users',
         

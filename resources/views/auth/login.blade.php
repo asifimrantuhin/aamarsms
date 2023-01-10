@@ -57,7 +57,7 @@
 		  outline: 0;
 		  padding: 0.5rem 1rem;
 		}
-		.form input[type=email], .form input[type=password] {
+		.form input[type=email], .form input[type=text], .form input[type=password] {
 		  width: 100%;
 		}
 
@@ -148,7 +148,7 @@ if($logo){
       <form method="POST" action="{{ route('login') }}" class="form">
       	@csrf
         <div class="form__field">
-          <input type="email" name="email" placeholder="Enter your email" value="{{ old('email') }}" required autofocus>
+          <input type="text" name="email" placeholder="Enter your email" value="{{ old('email') }}" required autofocus>
           @if ($errors->has('email'))
           <span class="help-block">
           <span class="badge badge-danger"> <strong>{{ $errors->first('email')}}</strong></span>

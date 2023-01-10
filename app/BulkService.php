@@ -196,8 +196,6 @@ class BulkService extends Model {
                     $f = 0;
                     if (count($contacts) > 0) {
                         foreach ($contacts as $key => $contact) {
-
-
                             $data = array();
                             $data['user_id'] = $contact->user_id;
                             $data['group_id'] = isset($contact->group_id) ? $contact->group_id : 0;
@@ -210,6 +208,7 @@ class BulkService extends Model {
                             $data['created_at'] = date('Y-m-d H:i:s');
                             $data['comments'] = $res->msg;
                             $data['status'] = $res->success;
+                            $data['senderid'] = $res->senderid;
                             $data['smsid'] = (isset($smsidArr[$f]->MessageId) ? $smsidArr[$f]->MessageId: $smsidArr[$f]) ;
                             $data['price'] = $price;
                             $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;

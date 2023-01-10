@@ -132,7 +132,7 @@ class UserManagementController extends Controller
     $rules = array(
         'username' => 'required',
         'usertype' => 'required',
-        'email' => 'required|string|email|max:255|unique:users',
+        'email' => 'required|string|max:255|unique:users',
         'password' => 'required|min:6|max:30',
         'mobile' => 'required',
         'domain' => 'required',

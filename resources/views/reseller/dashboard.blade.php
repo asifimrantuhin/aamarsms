@@ -19,7 +19,7 @@
                     </div>
                 </div>
             </div><!-- col-3 -->
-            <div class="col-sm-6 col-xl-3 mg-t-20 mg-xl-t-0">
+            <!-- <div class="col-sm-6 col-xl-3 mg-t-20 mg-xl-t-0">
                 <div class="bg-primary rounded overflow-hidden">
                     <div class="pd-25 d-flex align-items-center">
                         <i class="fa fa-balance-scale tx-60 lh-0 tx-white op-7"></i>
@@ -29,7 +29,7 @@
                         </div>
                     </div>
                 </div>
-            </div><!-- col-3 -->
+            </div> -->
             <div class="col-sm-6 col-xl-3 mg-t-20 mg-xl-t-0">
                 <div class="bg-br-primary rounded overflow-hidden">
                     <div class="pd-25 d-flex align-items-center">

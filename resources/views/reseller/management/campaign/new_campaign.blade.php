@@ -656,12 +656,12 @@ tt.classList.toggle("show");
                                                 data: formdata,
                                                 dataType: "json",
                                                 success: function(data) {
-                                                    console.log(data);
+                                                    //console.log(data);
                                                     window.location.href ="<?php echo url('reseller/campaign'); ?>";
                                                 },
                                                 error: function(data) {
-                                                    console.log(data);
-                                                    //window.location.href ="<?php echo url('reseller/campaign'); ?>";
+                                                    //console.log(data);
+                                                    window.location.href ="<?php echo url('reseller/campaign'); ?>";
                                                 }
                                             });
                                         }

@@ -175,6 +175,7 @@ class SendSMS extends Model {
                                 $data['comments'] = $res->msg;
                                 $data['status'] = $res->success;
                                 $data['smsid'] = $res->smsid;
+                                $data['senderid'] = $res->senderid;
                                 $data['price'] = $price;
                                 $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
                                 //$data['text']          = "$sms_body";
@@ -239,7 +240,7 @@ class SendSMS extends Model {
             'userID' => 'ajratech2',
             'passwd' => 'ajratech2@Kqn183',
             'sender' => $mask,
-            'message' => str_replace('+', '%20', $message),
+            'message' => $message, //str_replace('+', '%20', $message),
             'msisdn' => $smsStr,
         ];
 
@@ -265,6 +266,7 @@ class SendSMS extends Model {
                 $getresult['msg'] = 'SMS sent successfully';
                 $getresult['smsid'] = '';
                 $getresult['destination'] = '';
+                $getresult['senderid'] = ($mask ? $mask : '');
             }
 
             header('Content-Type: application/json');
@@ -321,6 +323,7 @@ class SendSMS extends Model {
                     $getresult['msg'] = 'SMS sent successfully';
                     $getresult['smsid'] = isset($exp_response[1]) ? $exp_response[1] : '';
                     $getresult['destination'] = $response;
+                    $getresult['senderid'] = ($mask ? $mask : '');
                     $val = isset($exp_response[3]) ? $exp_response[3] : '';
                     $cur_price = explode("=", $val);
                     $operator_credit = number_format($cur_price[1], 0);
@@ -369,7 +372,7 @@ class SendSMS extends Model {
             'Username' => 'ajratech',
             'Password' => "Dhaka@5599",
             'From' => $mask,
-            'Message' => str_replace('+', '%20', $message),
+            'Message' => $message, //str_replace('+', '%20', $message),
             'To' => $smsStr,
         ];
 
@@ -406,6 +409,7 @@ class SendSMS extends Model {
                 if($response['ServiceClass']['Status'] == '0'){
 	                $getresult['smsid'] = $response['ServiceClass']['MessageId'];
 	                $getresult['destination'] = $response['ServiceClass']['StatusText'];
+                    $getresult['senderid'] = ($mask ? $mask : '');
 	                $operator_credit = $response['ServiceClass']['CurrentCredit'];
 	                DB::table('api_status')->where('name', '=', 'robi')
 	                ->update([
@@ -421,6 +425,7 @@ class SendSMS extends Model {
                 $getresult['msg'] = 'SMS sent successfully';
                 $getresult['smsid'] = '';
                 $getresult['destination'] = 'Success';
+                $getresult['senderid'] = ($mask ? $mask : '');
                 $getresult['smsidArr'] = $response['ServiceClass'];
                 $operator_credit = $response['ServiceClass'][0]['CurrentCredit'];
                  DB::table('api_status')->where('name', '=', 'robi')
@@ -452,6 +457,7 @@ class SendSMS extends Model {
             //     $pass = trim($gpmask[$mask]['pass']);
             // }
         }
+
 
         $text = "";
         $smsStr = '';
@@ -539,6 +545,7 @@ class SendSMS extends Model {
             $getresult['msg'] = 'SMS sent successfully';
             $getresult['smsid'] = '';
             $getresult['destination'] = '';
+            $getresult['senderid'] = ($mask ? $mask : '');
             SendSMS::gpBalance();
         }
 
@@ -797,7 +804,7 @@ public static function gpBalance() {
             "messages" => json_encode($contacts)
         ];
         //echo "<br/>";
-    //    print_r($data);exit;
+ 
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -1018,6 +1025,7 @@ public static function gpBalance() {
             $getresult['msg'] = 'SMS sent successfully';
             $getresult['smsid'] = $response->results[0]->status;
             $getresult['destination'] = $response->results[0]->destination;
+            $getresult['senderid'] = ($senderId ? $senderId : '8809617609821');
         }
         header('Content-Type: application/json');
         return json_encode($getresult);

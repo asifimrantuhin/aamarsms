@@ -102,7 +102,7 @@ class RechargeController extends Controller
         $from_date = $request->get('date_from');
         $to_date = $request->get('date_to');
         if (empty($from_date)) {
-            $from_date = '2019-01-01 00:00:00';
+            $from_date = '2012-01-01 00:00:00';
         } else {
             $from_date = $from_date . ' 00:00:00';
         }
@@ -115,8 +115,13 @@ class RechargeController extends Controller
         $rechargeHistory = DB::table('recharges')
                           ->join('users', 'users.id', '=', 'recharges.user_id')
                           ->select('recharges.*', 'users.name as user_name')
-                          ->where('recharges.user_id', 'LIKE', $user)
-                          ->where('recharges.sales_id', 'LIKE', $sales_id)
+                          ->when($user, function($query, $user){
+                                return $query->where('recharges.user_id', 'LIKE', $user);
+                          })
+                           ->when($sales_id, function($query, $sales_id){
+                                return $query->where('recharges.sales_id', 'LIKE', $sales_id);
+                          })
+                           ->where('recharged_by', Auth::user()->id)
                           ->whereBetween('recharges.created_at',[$from_date,$to_date])
                           ->where('recharges.type','=', 'recharge')
                           ->orderBy('recharges.id', 'DESC')
@@ -157,7 +162,7 @@ class RechargeController extends Controller
         //     ->paginate(20);
         // }
 
-        return view('admin.management.recharge.recharge_history',compact('customers','executives','rechargeHistory'));
+        return view('admin/management/recharge/recharge_history',compact('customers','executives','rechargeHistory'));
     }
 
 

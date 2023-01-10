@@ -85,10 +85,10 @@
                                           {{$sales}}
                                         </td>
                                         <td>{{ date('d-m-y H:i:s', strtotime($r->created_at))}}</td>
-                                        <td>{{number_format($r->amount, 4)}}</td>
-                                        <td>{{number_format($r->balance, 4)}}</td>
+                                        <td class="text-right">{{number_format($r->amount, 0)}}</td>
+                                        <td class="text-right">{{number_format($r->balance, 2)}}</td>
                                         <td>{{$r->comments}}</td>
-                                        <td><strong>{{$r->trx_id}}</strong></td>
+                                        <td class="text-right"><strong>{{$r->trx_id}}</strong></td>
                                         <td>
                                             @if($r->status == 0)
                                             <span class="badge badge-warning"> Pending  </span>
@@ -109,7 +109,7 @@
                                                 </a>
                                               
                                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                                                  <a href="#" data-toggle="modal" data-target="#recharge" data-id="{{ $r->user->id }}" class="dropdown-item"><div><i class="fa fa-plus"></i> Recharge this user</div></a>
+                                                  <a href="#" data-toggle="modal" data-target="#recharge" data-id="{{ $r->user_id }}" class="dropdown-item"><div><i class="fa fa-plus"></i> Recharge this user</div></a>
                                                 </div>
                                               </div>
                                         </td>
