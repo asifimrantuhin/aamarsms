@@ -309,6 +309,7 @@ class BulkService extends Model {
                             $data['created_at'] = date('Y-m-d H:i:s');
                             $data['comments'] = $res->msg;
                             $data['status'] = $res->success;
+                            $data['senderid'] = $res->senderid;
                             $data['smsid'] = (isset($smsidArr[$f]->MessageId) ? $smsidArr[$f]->MessageId: $smsidArr[$f]) ;
                             $data['price'] = $contact->sms_cost;
                             $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
