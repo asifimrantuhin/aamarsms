@@ -351,7 +351,7 @@ class ApiController extends Controller
                 } 
             }
         } else {
-            $response_array["message"] = "You are not allowed to send sms via API.Please contact with admin.";
+            $response_array["message"] = "Username or Password is wrong.";
             $response_array["response_code"] = 105;
             return json_encode($response_array);
         }

@@ -186,13 +186,14 @@ class SendSMS extends Model {
                                 $sms_count = $data['sms_count'];
                                 $campaigns->mask == 1 ? $type = 1 : $type = 2;
 
-                                UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                                
 
                                 if ($campaigns->dynamic_sms == 1) {
                                     DB::table('dynamic_sms')->where('id', $contact->id)->delete();
                                 }else{
                                     sms_senders::where('id', $contact->id)->delete();
                                 }
+                                UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                             
                         }
                     } catch (\Exception $e) {
