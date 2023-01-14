@@ -71,9 +71,6 @@ class ApiController extends Controller
             return json_encode($response_array);
         }
 
-        
-
-       
 
         $to_number = $r->to;
         $to = $r->to;
@@ -296,10 +293,7 @@ class ApiController extends Controller
 
                         DB::commit();
 
-                        // echo count($contacts);exit;
-                        // echo $totalcost;exit;
 
-                        
                         $response = $this->apiSMSsend($campaign_id,$totalcost);
 
                          

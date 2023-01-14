@@ -34,13 +34,13 @@ class Common extends Model {
     }
 
     public static function getCurrentBalanceById($userid) {
-//        $data = DB::table('recharges')->where('user_id', $userid)->orderBy('id', 'desc')->first();
-        //        return isset($data->balance) ? $data->balance : 0;
-        $balance = \DB::table('recharges')
-                ->select(\DB::raw('SUM(amount) as currentBalance'))
-                ->where('user_id', $userid)
-                ->get();
-        return isset($balance) ? $balance[0]->currentBalance : 0;
+       $data = DB::table('recharges')->where('user_id', $userid)->orderBy('id', 'desc')->first();
+        return isset($data->balance) ? $data->balance : 0;
+        // $balance = \DB::table('recharges')
+        //         ->select(\DB::raw('SUM(amount) as currentBalance'))
+        //         ->where('user_id', $userid)
+        //         ->get();
+        // return isset($balance) ? $balance[0]->currentBalance : 0;
     }
 
     public static function getGroupContactsCountByGroupId($group_id) {

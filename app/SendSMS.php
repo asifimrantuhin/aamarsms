@@ -150,7 +150,6 @@ class SendSMS extends Model {
                                 }
                             }
 
-
                         }
 
                         
@@ -193,7 +192,7 @@ class SendSMS extends Model {
                                 }else{
                                     sms_senders::where('id', $contact->id)->delete();
                                 }
-                                UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                                //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                             
                         }
                     } catch (\Exception $e) {
