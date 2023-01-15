@@ -14,7 +14,8 @@ use App\Models\sms_senders;
 use App\Models\sms_transactions;
 use App\Models\User;
 use App\Models\APIStatus;
-
+use App\Models\Campaign;
+use App\Models\DynamicSMS;
 ini_set('max_execution_time', 0);
 date_default_timezone_set('Asia/Dhaka');
 
@@ -213,7 +214,21 @@ class SendSMS extends Model {
                 }
             } 
             else {
-                DB::table('campaigns')->where('id', $campaigns->id)->update(['status' => 1]);
+                $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
+                if($countFailed > 0){
+                    echo "Retry Campaign";
+                    $camp = Campaign::where('id', $campaign_id)->first();
+                    $retryCount = $camp->retry +1;
+                    Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
+                    sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
+                    DynamicSMS::where('campaign_id', $campaign_id)->update(['status' => 1]);
+                    
+                    
+                }else{
+                    echo "Finish =>".$campaign_id;
+                    DB::table('campaigns')->where('id', $campaign_id)->update(['status' => 1]);
+                }
+                
             }
         }
     }

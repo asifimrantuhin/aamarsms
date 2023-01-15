@@ -218,7 +218,6 @@ class BulkService extends Model {
                             $user_id = $data['user_id'];
                             $sms_count = $data['sms_count'];
                             $campaigns->mask == 1 ? $type = 1 : $type = 2;
-
                             
                             //UserSMSCount::getUserSMSsummary2($operator,$user_id,$sms_count,$type);
 
@@ -262,13 +261,14 @@ class BulkService extends Model {
                             $sms_count = $data['sms_count'];
                             $type = 2;
 
-                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            
                             
                             if ($campaigns->dynamic_sms == 1) {
                                 DB::table('dynamic_sms')->where('id', $contact->id)->delete();
                             }else{
                                 sms_senders::where('id', $contact->id)->delete();
                             }
+                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                         }
                     }
                 }
@@ -322,13 +322,14 @@ class BulkService extends Model {
                             $sms_count = $data['sms_count'];
                             $type = 1;
 
-                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            
 
                             if ($campaigns->dynamic_sms == 1) {
                                 DynamicSMS::where('id', $contact->id)->delete();
                             }else{
                                 sms_senders::where('id', $contact->id)->delete();
                             }
+                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                             $f++;
                         }
                        
@@ -376,7 +377,7 @@ class BulkService extends Model {
                             }else{
                             sms_senders::where('id', $contact->id)->delete();
                             }
-                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                         }
                     }
                 }

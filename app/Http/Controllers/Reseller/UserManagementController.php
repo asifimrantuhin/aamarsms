@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reseller;
 use App\Helpers\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Mask;
+use App\Models\NonMask;
 use App\Models\RatePlan;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -25,8 +26,9 @@ class UserManagementController extends Controller
         $users= Auth::user();
         $userlist = User::where('parent_user',$users->id)->orderBy('id','DESC')->paginate(20);
         $masks = Mask::orderBy('id','DESC')->get();
+        $nonmasks = NonMask::orderBy('id','DESC')->get();
   
-        return view('reseller/management/user/index',compact('userlist','users','masks'));
+        return view('reseller/management/user/index',compact('userlist','users','masks','nonmasks'));
     }
 
     public function Status($id, $status) {
@@ -60,6 +62,11 @@ class UserManagementController extends Controller
         } else {
             $mask = '';
         }
+        if (!empty($request->input('nonmask'))) {
+            $nonmask = implode(",", $request->input('nonmask'));
+        } else {
+            $nonmask = '';
+        }
 
     $users= Auth::user();
     $rules = array(
@@ -87,6 +94,7 @@ class UserManagementController extends Controller
         'domain'        =>  $request->input('domain'),
         'role'        =>  $request->input('usertype'),
         'mask'        =>  $mask,
+        'nonmasking'        =>  $nonmask,
         'email'        =>  $request->input('email'),
         'mobile'        =>  $request->input('mobile'),
         'password'        =>  Hash::make($request->input('password')),
@@ -151,7 +159,10 @@ class UserManagementController extends Controller
         $maskslist = Mask::where('status', 1)->orderBy('id','DESC')->get();
         $usermask = explode(',', $customers[0]->mask);
 
-        return view('reseller.management.user.edit-user',compact('customers','users','maskslist','usermask','rates'));
+        $nonmaskslist = NonMask::where('status', 1)->orderBy('id','DESC')->get();
+        $senderIDs = explode(',', $customers[0]->nonmask);
+
+        return view('reseller.management.user.edit-user',compact('customers','users','maskslist','usermask','rates','nonmaskslist','senderIDs'));
     }
 
     /**
@@ -167,6 +178,9 @@ class UserManagementController extends Controller
         if ($request->input('mask')) {
             $masking = implode(",", $request->input('mask'));
         }
+        if ($request->input('nonmask')) {
+            $nonmasking = implode(",", $request->input('nonmask'));
+        }
 
         $data = array(
             'role' => $request->input('usertype'),
@@ -179,6 +193,7 @@ class UserManagementController extends Controller
             'status' => $request->input('status'),
             'operator' => $request->input('route'),
             'mask' => (isset($masking) ? $masking : ''),
+            'nonmasking' => (isset($nonmasking) ? $nonmasking : ''),
         );
         $user = new User();
         $user->where('id', $id)->update($data);

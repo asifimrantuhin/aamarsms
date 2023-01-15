@@ -284,6 +284,17 @@
                             </div>
                         </div>
 
+                        <div class="row mg-t-20">
+                            <label class="col-sm-4 form-control-label">Assaign SenderID: <span class="tx-danger">*</span></label>
+                            <div class="col-sm-8">
+                                <select class="selectpicker" name="nonmask[]" multiple data-live-search="true">
+                                    @foreach($nonmasks as $nonmask)
+                                    <option value="{{$nonmask->id}}">{{$nonmask->name}}</option>
+                                    @endforeach
+                                  </select>
+                            </div>
+                        </div>
+
                         
                         <div class="row mg-t-20">
                             <label class="col-sm-4 form-control-label">Rate Plan: <span class="tx-danger">*</span></label>

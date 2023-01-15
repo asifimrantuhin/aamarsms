@@ -129,6 +129,19 @@
                                       </select>
                                 </div>
                             </div>
+
+                            <label class="col-sm-3">SenderID: <span class="tx-danger">*</span></label>
+                            <div class="col-sm-3">
+                                <div class="row">
+                                    <select class="selectpicker form-control" name="nonmask[]" multiple data-live-search="true">
+                                        @foreach($nonmaskslist as $mask)
+                                        <option value="{{$mask->id}}" @foreach($senderIDs as $umask) <?php if($umask == $mask->id) echo 'selected="selected"'; ?> @endforeach>{{$mask->name}}</option>
+                                        @endforeach
+                                      </select>
+                                </div>
+                            </div>
+
+                            
                         </div>
                         @endforeach
 

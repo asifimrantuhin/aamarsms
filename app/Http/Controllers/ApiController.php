@@ -666,7 +666,7 @@ class ApiController extends Controller
                 } 
             }
         } else {
-            $response_array["message"] = "You are not allowed to send sms via API.Please contact with admin.";
+            $response_array["message"] = "Username or Password is wrong.";
             $response_array["response_code"] = 105;
             return json_encode($response_array);
         }
@@ -777,6 +777,13 @@ public function balance(Request $r)
         // echo $campaigns;exit;
 
         $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
+
+        $cron_id = DB::table('crontab')->insertGetId([
+            'cron_name' => 'api req',
+            'campaign_id' => $campaign_id, 
+            'execute_time' => date('Y-m-d H:i:s')
+        ]);
+
         $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
         $max_id = ($min_id) ? ($min_id + $limit) : 0;
 
@@ -797,9 +804,21 @@ public function balance(Request $r)
         if ($min_id != 0 && $max_id != 0) {
             echo BulkService::send($campaign_id, $min_id, $max_id, $limit);
         } else {
-            Campaign::where("id", $campaign_id)->update(["status" => 1]);
+            $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
+            if($countFailed > 0){
+                echo "Retry Campaign";
+                $camp = Campaign::where('id', $campaign_id)->first();
+                $retryCount = $camp->retry +1;
+                Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
+                sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
+                DynamicSMS::where('campaign_id', $campaign_id)->update(['status' => 1]);
+            }else{
+                $finish=  Campaign::where('id', $campaign_id)->update(['status' => 1]);
+                if($finish){echo "Sent";}else{echo "Not Exist";}
+            }
             
         }
+        DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
     }
 
     public function getOperator($number)

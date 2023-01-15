@@ -258,7 +258,8 @@ class HomeController extends Controller
  
     public static function smsSending() {
 		ini_set('max_execution_time', 0);
-        $limit = 25;
+        
+        $limit = 50;
         
         $campaigns =  Campaign::select('id', 'dynamic_sms', 'sms_count', 'campaign_name')
         ->where('status', 4)// 2
@@ -268,6 +269,13 @@ class HomeController extends Controller
         ->first();
 
         $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
+
+        $cron_id = DB::table('crontab')->insertGetId([
+            'cron_name' => 'bulk',
+            'campaign_id' => $campaign_id, 
+            'execute_time' => date('Y-m-d H:i:s')
+        ]);
+
         $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
         // dd($min_id);
         $max_id = ($min_id) ? ($min_id + $limit) : 0;
@@ -291,11 +299,20 @@ class HomeController extends Controller
             echo "SMS SENDING PROCESSING...";
             echo BulkService::send($campaign_id, $min_id, $max_id, $limit);
         }else{
-            //echo $campaign_id."==dddd";
-           $finish=  Campaign::where('id', $campaign_id)->update(['status' => 1]);
-
-           if($finish){echo "Sent";}else{echo "Not Exist";}
+            $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
+            if($countFailed > 0){
+                echo "Retry Campaign";
+                $camp = Campaign::where('id', $campaign_id)->first();
+                $retryCount = $camp->retry +1;
+                Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
+                sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
+                DynamicSMS::where('campaign_id', $campaign_id)->update(['status' => 1]);
+            }else{
+                $finish=  Campaign::where('id', $campaign_id)->update(['status' => 1]);
+                if($finish){echo "Sent";}else{echo "Not Exist";}
+            }
         }
+        DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
     }
 
 
