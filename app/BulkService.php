@@ -21,20 +21,14 @@ date_default_timezone_set('Asia/Dhaka');
 
 class BulkService extends Model {
 
-    public static function send($campaign_id, $min_id = 0, $max_id = 0, $limit) {
-        //echo "bulk\model";
-
+    public static function send($campaign_id, $min_id = 0, $max_id = 0, $limit, $cron_id=0) {
         $skip = 0;
         $campaigns = Campaign::select('group_id', 'mask', 'start_date','campaign_cost', 'text_body', 'sender', 'id', 'dynamic_sms', 'sms_count', 'user_id','sms_type')
                 ->where('id', $campaign_id)
                 ->where('status', 4) //2
                 ->where('start_date', '<=', date('Y-m-d H:i:s'))
-                ->orderBy(\DB::raw('RAND()'))
                 ->first();
-
-
         $contacts = '';
-
         if (isset($campaigns->group_id)) {
             $group_id = explode(',', $campaigns->group_id);
             $sms_body = isset($campaigns->text_body) ? $campaigns->text_body : '';
@@ -42,25 +36,25 @@ class BulkService extends Model {
 
             $sms_count = 0;
             if ($campaigns->dynamic_sms == 1) {
-
                 $contacts = DynamicSMS::select('id', 'country_code', 'message', 'number', 'operator', 'user_id', 'sms_cost', 'sms_count')
                                 ->where('campaign_id', $campaigns->id) 
                                 ->whereBetween('id', [$min_id, $max_id])
                                 ->where('status', 2)
                                 ->orderBy('id', 'desc')
                                 ->take($limit)->get();
+                $sms_count = isset($campaigns->sms_count) ? $campaigns->sms_count : 0;
             } else {
-            $contacts = sms_senders::select('id', 'country_code', 'number', 'operator', 'user_id', 'group_id', 'reseller_id')
+                $contacts = sms_senders::select('id', 'country_code', 'number', 'operator', 'user_id', 'group_id', 'reseller_id')
                                 ->whereIn('group_id', $group_id)
                                 ->whereBetween('id', [$min_id, $max_id])
                                 ->where('status', 2)
                                 ->orderBy('id', 'asc')
                                 ->take($limit)->get();
-                
 
                 $sms_count = isset($campaigns->sms_count) ? $campaigns->sms_count : 0;
             }
-                        $res = '';
+
+            $res = '';
 
             if (count($contacts) > 0) {
                 foreach ($contacts as $key => $contact) {
@@ -104,49 +98,55 @@ class BulkService extends Model {
                    
                     if ($contact->operator == 'RB') {
                         $robiArr[]= $data;
-                        $vendor_api = 'ROBIAPI';
+                        $vendor_api = 'robi';
                     } else if ($contact->operator == 'AL') {
                         $alArr[]= $data;
-                        $vendor_api = 'ROBIAPI';
+                        $vendor_api = 'robi';
                     } else if ($contact->operator == 'BL') {
                         $blArr[]= $data;
-                        $vendor_api = 'BanglalinkApi';
+                        $vendor_api = 'banglalink';
                     } else if ($contact->operator == 'TL') {
                         $ttArr[]= $data;
-                        $vendor_api = 'TeleTalkApi';
+                        $vendor_api = 'teletalk';
                     } else if ($contact->operator == 'GP') {
                         $gpArr[]= $data;
-                        $vendor_api = 'GpApi';
+                        $vendor_api = 'gp';
                     }
                 }
 
-                $response = SendSMS::RobiApi($robiArr, $campaigns->sender);
-                //$res = json_decode($response);
-                BulkService::responsehandle($campaigns, $contacts, json_decode($response), 'RB', 'ROBIAPI');
-
-                $response = SendSMS::RobiApi($alArr, $campaigns->sender);
-                //$res = json_decode($response);
-                BulkService::responsehandle($campaigns, $contacts, json_decode($response), 'AL', 'ROBIAPI');
-
-                $response = SendSMS::BanglalinkApi($blArr, $campaigns->sender);
-                //$res = json_decode($response);
-                BulkService::responsehandle($campaigns, $contacts, json_decode($response), 'BL', 'BanglalinkApi');
-
-                $response = SendSMS::TeleTalkApi($ttArr, $campaigns->sender);
-                //$res = json_decode($response);
-                BulkService::responsehandle($campaigns, $contacts, json_decode($response), 'TL', 'TeleTalkApi');
-
-                $response = SendSMS::gpApiNew($gpArr, $campaigns->sender,$campaigns->sms_type);
-                //$res = json_decode($response);
-                BulkService::responsehandle($campaigns, $contacts, json_decode($response), 'GP', 'GpApi');
+                if($robiArr){
+                    $response = SendSMS::RobiApi($robiArr, $campaigns->sender);
+                    $res = json_decode($response);
+                    BulkService::responsehandle($campaigns, $contacts, $res, 'RB', 'robi');
+                } 
+                if($alArr){
+                    $response = SendSMS::RobiApi($alArr, $campaigns->sender);
+                    $res = json_decode($response);
+                    BulkService::responsehandle($campaigns, $contacts, $res, 'AL', 'robi');
+                }
+                if($blArr){
+                    $response = SendSMS::BanglalinkApi($blArr, $campaigns->sender);
+                    $res = json_decode($response);
+                    BulkService::responsehandle($campaigns, $contacts, $res, 'BL', 'banglalink');
+                }
                 
+                if($ttArr){
+                    $response = SendSMS::TeleTalkApi($ttArr, $campaigns->sender);
+                    $res = json_decode($response);
+                    BulkService::responsehandle($campaigns, $contacts, $res, 'TL', 'teletalk');
+                }
+                if($gpArr){
+                    $response = SendSMS::gpApiNew($gpArr, $campaigns->sender,$campaigns->sms_type);
+                    $res = json_decode($response);
+                    BulkService::responsehandle($campaigns, $contacts, $res, 'GP', 'gp');
+                }
             } else{
 
 
                 if($campaigns->sender){
                     $selectOpr = DB::table('nonmasking')->where('name', $campaigns->sender)->first();
                     $api_name = $selectOpr->operator_name;
-                    $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                    $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type, $cron_id);
                     $vendor_api = $api_name;
                     $res = json_decode($response);
 
@@ -157,7 +157,7 @@ class BulkService extends Model {
                     $global_api = Configuration::pluck('priority_1')->first();
 
                     $api_name = ($getUserSelectedOperator !='' ? $getUserSelectedOperator : $global_api);
-                    $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                    $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type, $cron_id);
                     $vendor_api = $api_name;
                     $res = json_decode($response);
 
@@ -166,14 +166,14 @@ class BulkService extends Model {
                     # Priority 2
                         $api_name = Configuration::pluck('priority_2')->first();
                         //dd($api_name);
-                        $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                        $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type, $cron_id);
                         $vendor_api = $api_name;
                         $res = json_decode($response);
 
                         if (isset($res->success) && $res->success == 0) {
                         # Priority 3
                             $api_name = Configuration::pluck('priority_3')->first();
-                            $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type);
+                            $response = SendSMS::routeSMS($api_name,  $contacts_arr, $campaigns->sender, $campaigns->sms_type, $cron_id);
                             $vendor_api = $api_name;
                             $res = json_decode($response);
                         }
@@ -217,16 +217,13 @@ class BulkService extends Model {
                             $operator =  $data['operator'];
                             $user_id = $data['user_id'];
                             $sms_count = $data['sms_count'];
-                            $campaigns->mask == 1 ? $type = 1 : $type = 2;
-                            
-                            //UserSMSCount::getUserSMSsummary2($operator,$user_id,$sms_count,$type);
 
                             if ($campaigns->dynamic_sms == 1) {
                                 DB::table('dynamic_sms')->where('id', $contact->id)->delete();
                             }else{
                                 sms_senders::where('id', $contact->id)->delete();
                             }
-                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                             $f++;
                         }
                     }
@@ -259,16 +256,12 @@ class BulkService extends Model {
                             $operator =  $data['operator'];
                             $user_id = $data['user_id'];
                             $sms_count = $data['sms_count'];
-                            $type = 2;
-
-                            
-                            
                             if ($campaigns->dynamic_sms == 1) {
                                 DB::table('dynamic_sms')->where('id', $contact->id)->delete();
                             }else{
                                 sms_senders::where('id', $contact->id)->delete();
                             }
-                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                         }
                     }
                 }
@@ -329,7 +322,7 @@ class BulkService extends Model {
                             }else{
                                 sms_senders::where('id', $contact->id)->delete();
                             }
-                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                             $f++;
                         }
                        
@@ -377,7 +370,7 @@ class BulkService extends Model {
                             }else{
                             sms_senders::where('id', $contact->id)->delete();
                             }
-                            UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                         }
                     }
                 }

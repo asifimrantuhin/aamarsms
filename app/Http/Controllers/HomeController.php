@@ -11,6 +11,7 @@ use App\Models\OperatorBalance;
 use App\Models\RatePlan;
 use App\Models\sms_senders;
 use App\Models\sms_transactions;
+use App\Models\UserSmsCounter;
 use App\SendSMS;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
@@ -187,12 +188,11 @@ class HomeController extends Controller
             $reseller_price = RatePlan::where('user_id', $value->reseller_id)->first();
 
             if (isset($campaigns->mask) && $campaigns->mask == 1) {
-
                 $price = isset($rates->masking_price) ? $rates->masking_price : 0;
-                $rprice = isset($reseller_price->masking_price) ? $reseller_price->masking_price : 0; //reseller price 
+                $rprice = isset($reseller_price->masking_price) ? $reseller_price->masking_price : 0; 
             } else {
                 $price = isset($rates->nonmasking_price) ? $rates->nonmasking_price : 0;
-                $rprice = isset($reseller_price->nonmasking_price) ? $reseller_price->nonmasking_price : 0; // reseller price 
+                $rprice = isset($reseller_price->nonmasking_price) ? $reseller_price->nonmasking_price : 0; 
             }
 
             ## For Dynamic SMS
@@ -208,7 +208,6 @@ class HomeController extends Controller
 
         //    echo $rprice."><".$price ; exit ;
             if (isset($campaigns->campaign_name) && $campaigns->campaign_name == 'API') {
-
                 Common::addBalance($value->user_id, -$price, 'API sms sent');
             }
             $vndor_rate =  config('rate.vendor_price');
@@ -217,7 +216,12 @@ class HomeController extends Controller
 
             $vendor_price = isset($vndor_rate[$value->vendor_api]) ? $vndor_rate[$value->vendor_api] : 0;
             $vendor_price = ($vendor_price * $sms_count);
-            sms_transactions::where('id', $value->id)->update(['price' => $price, 'vendor_price' => $vendor_price, 'sell_price' => $rprice]);
+            if($value->reseller_id == '1'){
+                sms_transactions::where('id', $value->id)->update(['price' => $price, 'vendor_price' => $vendor_price, 'sell_price' => $price]);
+            }else{
+                sms_transactions::where('id', $value->id)->update(['price' => $price, 'vendor_price' => $vendor_price, 'sell_price' => $rprice]);
+            }
+            
         }
 
     }
@@ -258,23 +262,16 @@ class HomeController extends Controller
  
     public static function smsSending() {
 		ini_set('max_execution_time', 0);
-        
         $limit = 50;
-        
         $campaigns =  Campaign::select('id', 'dynamic_sms', 'sms_count', 'campaign_name')
         ->where('status', 4)// 2
         ->where('start_date', '<=', date('Y-m-d H:i:s'))
         // ->where('mask', 1)  Masking+Non-masking both kaj krbe ekn
-        ->orderBy('id', 'asc')
+        //->orderBy('id', 'asc')
+        ->orderBy(DB::raw('RAND()'))
         ->first();
 
         $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
-
-        $cron_id = DB::table('crontab')->insertGetId([
-            'cron_name' => 'bulk',
-            'campaign_id' => $campaign_id, 
-            'execute_time' => date('Y-m-d H:i:s')
-        ]);
 
         $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
         // dd($min_id);
@@ -292,18 +289,35 @@ class HomeController extends Controller
         }
         
 
-        sms_senders::where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
-        DynamicSMS::where('id', '<=', $dynamic_sms_max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+        
         echo $min_id . '/' . $max_id. '  / ';
         if ($min_id != 0 && $max_id != 0) {
             echo "SMS SENDING PROCESSING...";
-            echo BulkService::send($campaign_id, $min_id, $max_id, $limit);
+            $cron_id = 0;
+            if($campaign_id > 0){
+                $cron_id = DB::table('crontab')->insertGetId([
+                    'cron_name' => 'bulk',
+                    'campaign_id' => $campaign_id,
+                    'min_id' => $min_id,
+                    'max_id' =>  $max_id,
+                    'execute_time' => date('Y-m-d H:i:s')
+                ]);
+            }
+            sms_senders::where('id', '>=', $min_id)->where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+            DynamicSMS::where('id', '<=', $dynamic_sms_min_id)->where('id', '<=', $dynamic_sms_max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+            
+            echo BulkService::send($campaign_id, $min_id, $max_id, $limit,$cron_id);
+            
+            if($campaign_id > 0){
+                DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+            }
+
         }else{
             $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
-            if($countFailed > 0){
+            $camp = Campaign::where('id', $campaign_id)->first();
+            $retryCount = ($camp ? $camp->retry +1 : 0);
+            if($countFailed > 0 && $retryCount < 10){
                 echo "Retry Campaign";
-                $camp = Campaign::where('id', $campaign_id)->first();
-                $retryCount = $camp->retry +1;
                 Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
                 sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
                 DynamicSMS::where('campaign_id', $campaign_id)->update(['status' => 1]);
@@ -312,7 +326,81 @@ class HomeController extends Controller
                 if($finish){echo "Sent";}else{echo "Not Exist";}
             }
         }
-        DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+        
+    }
+
+    public static function smsSending2() {
+        ini_set('max_execution_time', 0);
+        $limit = 50;
+        $campaigns =  Campaign::select('id', 'dynamic_sms', 'sms_count', 'campaign_name')
+        ->where('status', 4)// 2
+        ->where('start_date', '<=', date('Y-m-d H:i:s'))
+        // ->where('mask', 1)  Masking+Non-masking both kaj krbe ekn
+        ->orderBy('id', 'asc')
+        ->first();
+        if($campaigns){
+            $is_dynamic = ($campaigns ? $campaigns->$dynamic_sms : 0);
+            $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
+            $min_id = NULL;
+            $max_id = NULL;
+            //
+            if($is_dynamic){
+                $min_id = DynamicSMS::where('campaign_id', $campaign_id)->where('status', 1)->min('id');
+                $max_id = ($min_id ? ($min_id + $limit) : 0);
+            }else{
+                $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
+                $max_id = ($min_id ? ($min_id + $limit) : 0);
+            }
+            
+           
+            // $min_id = $min_id != NULL ? $min_id : $dynamic_sms_min_id;
+            // $max_id = $max_id != NULL ? $max_id : $dynamic_sms_max_id;
+
+            if($min_id == NULL){
+                $min_id = 0;
+            }
+            
+
+            
+            if($is_dynamic){
+                DynamicSMS::where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+                  
+            }else{
+                sms_senders::where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+            }
+            echo $min_id . '/' . $max_id. '  / ';
+            if ($min_id > 0 && $max_id > 0) {
+                echo "SMS SENDING PROCESSING...";
+                if($campaign_id > 0){
+                    $cron_id = DB::table('crontab')->insertGetId([
+                        'cron_name' => 'bulk',
+                        'campaign_id' => $campaign_id,
+                        'min_id' => $min_id,
+                        'max_id' =>  $max_id,
+                        'execute_time' => date('Y-m-d H:i:s')
+                    ]);
+                }
+                echo BulkService::send($campaign_id, $min_id, $max_id, $limit);
+                if($campaign_id > 0){
+                    DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+                }
+
+            }else{
+                $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
+                if($countFailed > 0){
+                    echo "Retry Campaign";
+                    $camp = Campaign::where('id', $campaign_id)->first();
+                    $retryCount = $camp->retry +1;
+                    Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
+                    sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
+                    DynamicSMS::where('campaign_id', $campaign_id)->update(['status' => 1]);
+                }else{
+                    $finish=  Campaign::where('id', $campaign_id)->update(['status' => 1]);
+                    if($finish){echo "Sent";}else{echo "Not Exist";}
+                }
+            }
+        }
+        
     }
 
 
@@ -442,9 +530,178 @@ class HomeController extends Controller
 
 
 
-    public static function getUserSMSsummary2($user_id){
-        $sms_summery = DB::Select("SELECT operator, SUM(sms_count) FROM sms_transactions WHERE user_id=$user_id AND DATE_FORMAT(created_at, '%Y-%m-%d')='".date("Y-m-d")."' GROUP BY operator");
-        //dd($sms_summery);
+    public function getUserSMSsummary2(Request $request){
+        $userid = $request->get('userid');
+        $fromdate = ($request->get('fromdate') ? $request->get('fromdate') : date("Y-m-d"));
+        $todate =  ($request->get('todate') ? $request->get('todate') : date("Y-m-d"));
+
+        $userlist = DB::table('users')
+            ->select('id')
+            ->where('status', 1)
+            ->when($userid, function($q) use ($userid){
+                $q->where('id', '=',$userid);
+            })
+            ->get();
+
+        foreach($userlist as $user){
+            $user_id = $user->id;
+            $sms_summary = DB::Select("SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS sent_date, operator, SUM(sms_count) AS sms_count  FROM sms_transactions WHERE user_id=".$user_id." AND DATE_FORMAT(created_at, '%Y-%m-%d') BETWEEN '".$fromdate."' AND '".$todate."' GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d'), operator");
+
+            foreach($sms_summary as $row){
+                $operator = $row->operator;
+                $checkData = UserSmsCounter::where('user_id',$user_id)->whereDate('sent_date', $row->sent_date)->first();
+                if($checkData) {
+                    switch ($operator) {
+                        case "GP":
+                            $update = UserSmsCounter::find($checkData->id);
+                            $update->sent_date = $row->sent_date;
+                            $update->gp = $row->sms_count;
+                            $update->save();
+                            break;
+                        case "BL":
+                            $update = UserSmsCounter::find($checkData->id);
+                            $update->sent_date = $row->sent_date;
+                            $update->bl = $row->sms_count;
+                            $update->save();
+                            break;
+                        case "RB":
+                            $update = UserSmsCounter::find($checkData->id);
+                            $update->sent_date = $row->sent_date;
+                            $update->robi = $row->sms_count;
+                            $update->save();
+                            break;
+                        case "TL":
+                            $update = UserSmsCounter::find($checkData->id);
+                            $update->sent_date = $row->sent_date;
+                            $update->teletalk = $row->sms_count;
+                            $update->save();
+                            break;
+                        case "AL":
+                            $update = UserSmsCounter::find($checkData->id);
+                            $update->sent_date = $row->sent_date;
+                            $update->airtel = $row->sms_count;
+                            $update->save();
+                            break;
+                        default:
+                           
+                    }
+                }else{
+                    switch ($operator) {
+                        case "GP":
+                            $sms_c = array();
+                            $sms_c['user_id'] = $user_id;
+                            $sms_c['sent_date'] = $row->sent_date;
+                            $sms_c['gp'] = $row->sms_count;
+                            $sms_c['created_at'] = date('Y-m-d H:i:s');
+                            $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                            break;
+                        case "BL":
+                            $sms_c = array();
+                            $sms_c['user_id'] = $user_id;
+                            $sms_c['sent_date'] = $row->sent_date;
+                            $sms_c['bl'] = $row->sms_count;
+                            $sms_c['created_at'] = date('Y-m-d H:i:s');
+                            $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                            break;
+                        case "RB":
+                            $sms_c = array();
+                            $sms_c['user_id'] = $user_id;
+                            $sms_c['sent_date'] = $row->sent_date;
+                            $sms_c['robi'] = $row->sms_count;
+                            $sms_c['created_at'] = date('Y-m-d H:i:s');
+                            $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                            break;
+                        case "TL":
+                           $sms_c = array();
+                            $sms_c['user_id'] = $user_id;
+                            $sms_c['sent_date'] = $row->sent_date;
+                            $sms_c['teletalk'] = $row->sms_count;
+                            $sms_c['created_at'] = date('Y-m-d H:i:s');
+                            $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                            break;
+                        case "AL":
+                            $sms_c = array();
+                            $sms_c['user_id'] = $user_id;
+                            $sms_c['sent_date'] = $row->sent_date;
+                            $sms_c['airtel'] = $row->sms_count;
+                            $sms_c['created_at'] = date('Y-m-d H:i:s');
+                            $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                            break;
+                        default:
+                            
+                    }
+                    UserSmsCounter::insert($sms_c);
+                }
+            }
+
+
+            $mask_nonmask_summary = DB::Select("SELECT DATE_FORMAT(st.created_at, '%Y-%m-%d') AS sent_date,
+                IF(c.mask='0', SUM(st.sms_count), 0) AS nonmask,
+                IF(c.mask='1', SUM(st.sms_count), 0) AS mask
+                FROM sms_transactions st
+                JOIN campaigns c ON c.id = st.`campaign_id`
+                WHERE st.user_id=$user_id AND DATE_FORMAT(st.created_at, '%Y-%m-%d') BETWEEN '".$fromdate."' AND '".$todate."'
+                GROUP BY DATE_FORMAT(st.created_at, '%Y-%m-%d'), c.mask");
+        
+            foreach($mask_nonmask_summary as $row){
+                $mask = $row->mask;
+                $nonmask = $row->nonmask;
+                $checkData = UserSmsCounter::where('user_id',$user_id)->whereDate('sent_date', $row->sent_date)->first();
+                if($checkData) {
+                    $update = UserSmsCounter::find($checkData->id);
+                    $update->mask = ($mask > 0 ? $mask : $update->mask);
+                    $update->nonmask = ($nonmask > 0 ? $nonmask : $update->nonmask);
+                    $update->updated_at = date('Y-m-d H:i:s');
+                    $update->save();
+                }else{
+                    $sms_c = array();
+                    $sms_c['user_id'] = $user_id;
+                    $sms_c['sent_date'] = $sent_date;
+                    $sms_c['mask'] = $mask;
+                    $sms_c['nonmask'] = $nonmask;
+                    $sms_c['created_at'] = date('Y-m-d H:i:s');
+                    $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                    UserSmsCounter::insert($sms_c);
+                }
+            }
+
+
+            $total_summary = DB::Select("SELECT DATE_FORMAT(st.created_at, '%Y-%m-%d') AS sent_date,
+                SUM(st.sms_count) AS total_sms,
+                ROUND(SUM(st.price),2) AS total_price,
+                ROUND(SUM(st.sell_price),2) AS total_sell_price
+                FROM sms_transactions st
+                JOIN campaigns c ON c.id = st.`campaign_id`
+                WHERE st.user_id=$user_id AND DATE_FORMAT(st.created_at, '%Y-%m-%d') BETWEEN '".$fromdate."' AND '".$todate."'
+                GROUP BY DATE_FORMAT(st.created_at, '%Y-%m-%d')");
+        
+            foreach($total_summary as $row){
+                $total_sms = $row->total_sms;
+                $total_price = $row->total_price;
+                $total_sell_price = $row->total_sell_price;
+                $sent_date = $row->sent_date;
+
+                $checkData = UserSmsCounter::where('user_id',$user_id)->whereDate('sent_date', $row->sent_date)->first();
+                if($checkData) {
+                    $update = UserSmsCounter::find($checkData->id);
+                    $update->total_sms = $total_sms;
+                    $update->total_price = $total_price;
+                    $update->total_sell_price = $total_sell_price;
+                    $update->updated_at = date('Y-m-d H:i:s');
+                    $update->save();
+                }else{
+                    $sms_c = array();
+                    $sms_c['user_id'] = $user_id;
+                    $sms_c['sent_date'] = $sent_date;
+                    $sms_c['total_sms'] = $total_sms;
+                    $sms_c['total_price'] = $total_price;
+                    $sms_c['total_sell_price'] = $total_sell_price;
+                    $sms_c['created_at'] = date('Y-m-d H:i:s');
+                    $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                    UserSmsCounter::insert($sms_c);
+                }
+            }
+        }
     }
 
    

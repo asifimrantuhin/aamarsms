@@ -505,7 +505,13 @@
                                     formdata.append('campaign_name', $("input[name='campaign_name']").val());
                                     formdata.append('campaign_message', $("#campaign_message").val());
                                     formdata.append('mask', $("#mask").val());
-                                    formdata.append('senderid', $("#SenderIdShow").val());
+                                    // formdata.append('senderid', ($("#mask").val() ? $("#MaskingShow").val() : $("#SenderIdShow").val()));
+                                    if($("#mask").val() == '1'){
+                                        formdata.append('senderid', $("#MaskingShow").val());
+                                    }else{
+                                        formdata.append('senderid', $("#SenderIdShow").val());
+                                    }
+                                    
                                     formdata.append('schedule', $("#schedule").val());
                                     formdata.append('upload_type', $("#upload_type").val());
                                     formdata.append('raw_msisdn', $("#raw_msisdn").val());

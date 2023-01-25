@@ -55,11 +55,16 @@
                                 <tr>
                                     <th class="text-center">Date</th>
                                     <th class="text-center">User</th>
-                                    <th class="text-center">GP SMS COUNT</th>
-                                    <th class="text-center">BL SMS COUNT</th>
-                                    <th class="text-center">Robi SMS COUNT</th>
-                                    <th class="text-center">Teletalk SMS COUNT</th>
-                                    <th class="text-center">Total SMS COUNT</th>
+                                    <th class="text-center">GP SMS</th>
+                                    <th class="text-center">BL SMS</th>
+                                    <th class="text-center">Robi SMS</th>
+                                    <th class="text-center">Airtel SMS</th>
+                                    <th class="text-center">Teletalk SMS</th>
+
+                                    <th class="text-center">Total Masking</th>
+                                    <th class="text-center">Total Non Masking</th>
+                                    <th class="text-center">Total SMS</th>
+                                    <th class="text-center">Total PRICE</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -70,8 +75,12 @@
                                 $gp = 0;
                                 $bl = 0;
                                 $robi = 0;
+                                $airtel = 0;
                                 $teletalk = 0;
-                                $total = 0;
+                                $total_sms = 0;
+                                $total_price = 0;
+                                $total_masking = 0;
+                                $total_nonmasking = 0;
                                 @endphp
 
                                 @foreach ($sms_report as $sm)
@@ -79,9 +88,13 @@
                                 @php
                                 $gp += (isset($sm->gp) ? $sm->gp : 0);
                                 $bl += (isset($sm->bl) ? $sm->bl : 0);
-                                $robi += $sm->robi + $sm->airtel;
+                                $robi += (isset($sm->robi) ? $sm->robi : 0);
+                                $airtel += (isset($sm->airtel) ? $sm->airtel : 0);
                                 $teletalk += (isset($sm->teletalk) ? $sm->teletalk : 0);
-                                $total += ($sm->gp + $sm->bl + $sm->robi + $sm->airtel + $sm->teletalk) ;
+                                $total_sms += $sm->total_sms;
+                                $total_price += $sm->total_price;
+                                $total_masking += $sm->mask;
+                                $total_nonmasking += $sm->nonmask;
                                 @endphp
 
                                 <tr>
@@ -89,9 +102,13 @@
                                     <td class="text-center">{{$sm->username}}</td>
                                     <td class="text-right">{{ (isset($sm->gp) ? $sm->gp : 0) }}</td>
                                     <td class="text-right">{{ (isset($sm->bl) ? $sm->bl : 0) }}</td>
-                                    <td class="text-right">{{ $sm->robi + $sm->airtel }}</td>
+                                    <td class="text-right">{{ $sm->robi }}</td>
+                                    <td class="text-right">{{ $sm->airtel }}</td>
                                     <td class="text-right">{{ (isset($sm->teletalk) ? $sm->teletalk : 0) }}</td>
-                                    <td class="text-right">{{ ($sm->gp + $sm->bl + $sm->robi + $sm->airtel + $sm->teletalk) }}</td>
+                                    <td class="text-right">{{ $sm->mask }}</td>
+                                    <td class="text-right">{{ $sm->nonmask }}</td>
+                                    <td class="text-right">{{ $sm->total_sms }}</td>
+                                    <td class="text-right">{{ $sm->total_price }}</td>
                                 </tr>
                                 @endforeach
                                 <tr>
@@ -109,12 +126,16 @@
                                     <th class="text-right">{{ $gp }}</th>
                                     <th class="text-right">{{ $bl }}</th>
                                     <th class="text-right">{{ $robi}}</th>
+                                    <th class="text-right">{{ $airtel}}</th>
                                     <th class="text-right">{{ $teletalk }}</th>
-                                    <th class="text-right">{{ $total }}</th>
+                                    <th class="text-right">{{ $total_masking }}</th>
+                                    <th class="text-right">{{ $total_nonmasking }}</th>
+                                    <th class="text-right">{{ $total_sms }}</th>
+                                    <th class="text-right">{{ $total_price }}</th>
                                 </tr>
                                 @else
                                 <tr>
-                                    <td colspan="6">No Records Found</td>
+                                    <td colspan="10">No Records Found</td>
                                 </tr>
                                 @endif
 

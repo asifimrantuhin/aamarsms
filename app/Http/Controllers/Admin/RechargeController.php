@@ -8,6 +8,7 @@ use App\Helpers\Log;
 use App\Models\Recharge;
 use App\Models\RechargeRequest;
 use App\Models\User;
+use App\Models\APIStatus;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -328,6 +329,69 @@ class RechargeController extends Controller
         Recharge::where('id', $id)->update(['adm_payment' => $status]);
         Toastr::success('Admin Transaction Status Changed !!!','Success');
         return back();
+    }
+
+    
+    public function operator_recharge(Request $request) {
+        $users = Auth::user();
+        $user_id = $users->id;
+        
+
+        $operator = $request->input('operator');
+        
+        $from_date = $request->get('date_from');
+        $to_date = $request->get('date_to');
+        if (empty($from_date)) {
+            $from_date = '2012-01-01';
+        } else {
+            $from_date = $from_date;
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d');
+        } else {
+            $to_date = $to_date;
+        }
+
+        $vendorList = APIStatus::get();
+
+        $rechargeHistory = DB::table('vendor_recharge')
+                          ->when($operator, function($query, $operator){
+                                return $query->where('vendor', 'LIKE', $operator);
+                          })
+                          ->whereBetween('recharge_date',[$from_date,$to_date])
+                          ->orderBy('created_at', 'DESC')
+                          ->paginate(20);
+
+
+        return view('admin/management/operator_recharge/recharge_history',compact('rechargeHistory','vendorList'));
+    }
+
+    public function save_operator_recharge(Request $request)
+    {
+        $user_id = Auth::user()->id;
+        $validator = Validator::make($request->all(), [
+                    'operator' => 'required',
+                    'amount' => 'required',
+                    'recharge_date' => 'required'
+        ]);
+        if ($validator->fails()) {
+            return back()->with('error', 'Fillup mandatory field');
+        }
+
+        $insert = DB::table('vendor_recharge')->insert([
+            'vendor' => $request->input('operator'),
+            'amount' => $request->input('amount'),
+            'recharge_date' => date("Y-m-d", strtotime($request->input('recharge_date'))),
+            'note' => $request->input('note'),
+            'created_at' => date("Y-m-d H:i:s")
+        ]);
+        
+
+        if ($insert) {
+            return back()->with('success', 'Recharge saved');
+        } else {
+            return back()->with('error', "Recharge is Failed :)");
+        }
     }
 
     public function show(Recharge $recharge)

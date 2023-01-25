@@ -9,7 +9,7 @@
     <div class="br-header-right">
         {{-- Balance Div --}}
 
-        <span>Balance: <strong> 
+        <span style="color:#fff">Balance: <strong> 
             @php
             $currentBalance = DB::table('recharges')->where('user_id',Auth::user()->id)->latest()->pluck('balance')->first();
             @endphp

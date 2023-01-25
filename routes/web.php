@@ -72,6 +72,13 @@ Route::get('sms-sending2', [HomeController::class, 'smsSending']); // Bulk SMS
 Route::get('sms-sending3', [HomeController::class, 'smsSending']); // Bulk SMS
 Route::get('sms-sending4', [HomeController::class, 'smsSending']); // Bulk SMS
 Route::get('bulk-sms-sending', [HomeController::class, 'smsSending']);
+
+
+Route::get('user-sms-summary', [HomeController::class, 'getUserSMSsummary2']);
+
+
+
+
 Route::get('price-sync', [HomeController::class, 'priceSync']); // Price
 Route::get('callback_response_push', [HomeController::class, 'callback_response_push']); // CallBack
 
@@ -242,6 +249,11 @@ Route::group(['prefix' => 'admin', 'middleware'=>['admin','auth']], function () 
     Route::get('/samplefile', [HomeController::class, 'SampleFile']);
     Route::post('/addcontactingroup/{id}', [GroupController::class, 'addContactOnGroup']);
 
+
+    //Vendor Recharge
+    Route::get('/operator_recharge', [RechargeController::class, 'operator_recharge']);
+    Route::post('/save_operator_recharge', [RechargeController::class, 'save_operator_recharge']);
+
     // Recharge
     Route::post('/recharge/create', [RechargeController::class, 'store']);
     Route::get('/recharge_history', [RechargeController::class, 'History']);
@@ -264,9 +276,12 @@ Route::group(['prefix' => 'admin', 'middleware'=>['admin','auth']], function () 
 
 
     // Report management
+    Route::get('/sms_transactions', [AdminController::class, 'SMSTransactions']);
     Route::get('/vendor_sms', [AdminController::class, 'VendorTransactionsHistory']);
     Route::get('/user_sms', [AdminController::class, 'UserSMSReport']);
-    Route::get('/sms_transactions', [AdminController::class, 'SMSTransactions']);
+    Route::get('/reseller_sms', [AdminController::class, 'ResellerSMSReport']);
+    Route::get('/financial_report', [AdminController::class, 'FinancialReport']);
+    
     // Report management
 
     // Revenue Report
@@ -576,4 +591,41 @@ Route::group(['prefix' => 'user/dlr'], function () {
     Route::get('campaignwise/dlr_export/{id}', [DLRController::class, 'campaignDlrExport']);
     Route::get('campaignlist', [DLRController::class, 'campaignlist_dlr']);
     Route::get('deliverylog', [DLRController::class, 'deliverylog']);
+});
+
+
+//Clear Cache facade value:
+Route::get('/clear-cache', function () {
+    $exitCode = Artisan::call('cache:clear');
+    return '<h1>Cache facade value cleared</h1>';
+});
+
+//Reoptimized class loader:
+Route::get('/optimize', function () {
+    $exitCode = Artisan::call('optimize');
+    return '<h1>Reoptimized class loader</h1>';
+});
+
+//Route cache:
+Route::get('/route-cache', function () {
+    $exitCode = Artisan::call('route:cache');
+    return '<h1>Routes cached</h1>';
+});
+
+//Clear Route cache:
+Route::get('/route-clear', function () {
+    $exitCode = Artisan::call('route:clear');
+    return '<h1>Route cache cleared</h1>';
+});
+
+//Clear View cache:
+Route::get('/view-clear', function () {
+    $exitCode = Artisan::call('view:clear');
+    return '<h1>View cache cleared</h1>';
+});
+
+//Clear Config cache:
+Route::get('/config-cache', function () {
+    $exitCode = Artisan::call('config:cache');
+    return '<h1>Clear Config cleared</h1>';
 });

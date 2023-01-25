@@ -163,10 +163,96 @@ class UserSMSCount extends Model
 
 
     public static function getUserSMSsummary2($user_id){
-        $sms_summery = DB::Select("SELECT operator, SUM(sms_count) FROM sms_transactions WHERE user_id=$user_id AND DATE_FORMAT(created_at, '%Y-%m-%d')='".date("Y-m-d")."' GROUP BY operator");
+        // $sms_summery = DB::Select("SELECT operator, SUM(sms_count) FROM sms_transactions WHERE user_id=$user_id AND DATE_FORMAT(created_at, '%Y-%m-%d')='".date("Y-m-d")."' GROUP BY operator");
+        $sms_summary = DB::Select("SELECT user_id,DATE_FORMAT(created_at, '%Y-%m-%d') AS sent_date, operator, SUM(sms_count) AS sms_count  FROM sms_transactions WHERE user_id=$user_id AND DATE_FORMAT(created_at, '%Y-%m-%d') BETWEEN '".$fromdate."' AND '".$todate."' GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d'), operator");
 
-        
-        
+        foreach($sms_summary as $row){
+            $user_id = $row->user_id;
+            $operator = $row->operator;
+            $checkData = UserSmsCounter::where('user_id',$user_id)->whereDate('sent_date', $row->sent_date)->first();
+            if($checkData) {
+                switch ($operator) {
+                    case "GP":
+                        $update = UserSmsCounter::find($checkData->id);
+                        $update->sent_date = $row->sent_date;
+                        $update->gp = $row->sms_count;
+                        $update->save();
+                        break;
+                    case "BL":
+                        $update = UserSmsCounter::find($checkData->id);
+                        $update->sent_date = $row->sent_date;
+                        $update->bl = $row->sms_count;
+                        $update->save();
+                        break;
+                    case "RB":
+                        $update = UserSmsCounter::find($checkData->id);
+                        $update->sent_date = $row->sent_date;
+                        $update->robi = $row->sms_count;
+                        $update->save();
+                        break;
+                    case "TL":
+                        $update = UserSmsCounter::find($checkData->id);
+                        $update->sent_date = $row->sent_date;
+                        $update->teletalk = $row->sms_count;
+                        $update->save();
+                        break;
+                    case "AL":
+                        $update = UserSmsCounter::find($checkData->id);
+                        $update->sent_date = $row->sent_date;
+                        $update->airtel = $row->sms_count;
+                        $update->save();
+                        break;
+                    default:
+                        // nothing
+                }
+            }else{
+                switch ($operator) {
+                    case "GP":
+                        $sms_c = array();
+                        $sms_c['user_id'] = $user_id;
+                        $sms_c['sent_date'] = $row->sent_date;
+                        $sms_c['gp'] = $sms_count;
+                        $sms_c['created_at'] = date('Y-m-d H:i:s');
+                        $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                        break;
+                    case "BL":
+                        $sms_c = array();
+                        $sms_c['user_id'] = $user_id;
+                        $sms_c['sent_date'] = $row->sent_date;
+                        $sms_c['bl'] = $sms_count;
+                        $sms_c['created_at'] = date('Y-m-d H:i:s');
+                        $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                        break;
+                    case "RB":
+                        $sms_c = array();
+                        $sms_c['user_id'] = $user_id;
+                        $sms_c['sent_date'] = $row->sent_date;
+                        $sms_c['robi'] = $sms_count;
+                        $sms_c['created_at'] = date('Y-m-d H:i:s');
+                        $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                        break;
+                    case "TL":
+                       $sms_c = array();
+                        $sms_c['user_id'] = $user_id;
+                        $sms_c['sent_date'] = $row->sent_date;
+                        $sms_c['teletalk'] = $sms_count;
+                        $sms_c['created_at'] = date('Y-m-d H:i:s');
+                        $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                        break;
+                    case "AL":
+                        $sms_c = array();
+                        $sms_c['user_id'] = $user_id;
+                        $sms_c['sent_date'] = $row->sent_date;
+                        $sms_c['airtel'] = $sms_count;
+                        $sms_c['created_at'] = date('Y-m-d H:i:s');
+                        $sms_c['updated_at'] = date('Y-m-d H:i:s');
+                        break;
+                    default:
+                        // nothing
+                }
+                UserSmsCounter::insert($sms_c);
+            }
+        }
 
     }
 }

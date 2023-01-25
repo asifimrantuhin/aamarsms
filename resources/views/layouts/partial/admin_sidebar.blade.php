@@ -49,7 +49,7 @@
         <a href="#" class="br-menu-link">
             <div class="br-menu-item">
                 <i class="menu-item-icon ion-person-stalker tx-24"></i>
-                <span class="menu-item-label">    &nbsp;    Users</span>
+                <span class="menu-item-label">  &nbsp; Manage   Users</span>
                 <i class="menu-item-arrow fa fa-angle-down"></i>
             </div><!-- menu-item -->
         </a><!-- br-menu-link -->
@@ -92,14 +92,16 @@
         <a href="#" class="br-menu-link">
             <div class="br-menu-item">
                 <i class="menu-item-icon icon ion-ios-calculator tx-24"></i>
-                <span class="menu-item-label">    &nbsp;   Recharge</span>
+                <span class="menu-item-label"> &nbsp; Recharge</span>
                 <i class="menu-item-arrow fa fa-angle-down"></i>
-            </div><!-- menu-item -->
-        </a><!-- br-menu-link -->
+            </div>
+        </a>
         <ul class="br-menu-sub nav flex-column">
             <li class="nav-item"><a href="{{url('admin/recharge_history')}}" class="nav-link">Recharge User/Reseller</a></li>
-            <li class="nav-item"><a href="{{url('admin/customer_credit')}}" class="nav-link">Recharge Request</a></li>
+            <!-- <li class="nav-item"><a href="{{url('admin/customer_credit')}}" class="nav-link">Recharge Request</a></li> -->
+            <li class="nav-item"><a href="{{url('admin/operator_recharge')}}" class="nav-link">Operator Recharge</a></li>
             <li class="nav-item"><a href="{{url('admin/transaction_history')}}" class="nav-link">Transaction History</a></li>
+            
         </ul>
         {{-- <a href="#" class="br-menu-link">
             <div class="br-menu-item">
@@ -124,8 +126,21 @@
         </a>
         <ul class="br-menu-sub nav flex-column">
             <li class="nav-item"><a href="{{url('admin/sms_transactions')}}" class="nav-link">SMS Report</a></li>
-            <li class="nav-item"><a href="{{url('admin/vendor_sms')}}" class="nav-link">Vendor SMS Report</a></li>
+            <li class="nav-item"><a href="{{url('admin/reseller_sms')}}" class="nav-link">Reseller SMS Report</a></li>
             <li class="nav-item"><a href="{{url('admin/user_sms')}}" class="nav-link">User SMS Report</a></li>
+        </ul>
+
+        <a href="#" class="br-menu-link">
+            <div class="br-menu-item">
+                <i class="menu-item-icon ion-ios-paper-outline tx-24"></i>
+                <span class="menu-item-label">    &nbsp;    Report</span>
+                <i class="menu-item-arrow fa fa-angle-down"></i>
+            </div>
+        </a>
+        <ul class="br-menu-sub nav flex-column">
+            <li class="nav-item"><a href="{{url('admin/financial_report')}}" class="nav-link">Financial Report</a></li>
+            <li class="nav-item"><a href="{{url('admin/vendor_sms')}}" class="nav-link">Vendor SMS Report</a></li>
+            <li class="nav-item"><a href="{{url('admin/revenue_report')}}" class="nav-link">Revenue Report</a></li>
         </ul>
 
         <a href="#" class="br-menu-link">
@@ -158,7 +173,7 @@
             <li class="nav-item"><a href="{{url('admin/nonmask')}}" class="nav-link">SenderID Management</a></li>
             <li class="nav-item"><a href="{{url('admin/settings')}}" class="nav-link">Vendor Configurations</a></li>
             <li class="nav-item"><a href="{{url('admin/api')}}" class="nav-link">API Management </a></li> 
-            <li class="nav-item"><a href="{{url('admin/revenue_report')}}" class="nav-link">Revenue Report</a></li> 
+             
         </ul>
        
      

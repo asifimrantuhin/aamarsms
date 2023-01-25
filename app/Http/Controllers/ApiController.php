@@ -294,7 +294,7 @@ class ApiController extends Controller
                         DB::commit();
 
 
-                        $response = $this->apiSMSsend($campaign_id,$totalcost);
+                        $response = $this->apiSMSsend($campaign_id);
 
                          
                         //SOMOSSA EKHNEI apiSMSsend
@@ -777,20 +777,11 @@ public function balance(Request $r)
         // echo $campaigns;exit;
 
         $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
-
-        $cron_id = DB::table('crontab')->insertGetId([
-            'cron_name' => 'api req',
-            'campaign_id' => $campaign_id, 
-            'execute_time' => date('Y-m-d H:i:s')
-        ]);
-
         $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
         $max_id = ($min_id) ? ($min_id + $limit) : 0;
 
         $dynamic_sms_min_id = DynamicSMS::where('campaign_id', $campaign_id)->where('status', 1)->min('id');
         $dynamic_sms_max_id = ($dynamic_sms_min_id) ? ($dynamic_sms_min_id + $limit) : 0;
-       
-
         $min_id = $min_id != NULL ? $min_id : $dynamic_sms_min_id;
         $max_id = $max_id != NULL ? $max_id : $dynamic_sms_max_id;
 
@@ -802,13 +793,25 @@ public function balance(Request $r)
         DynamicSMS::where("id", "<=", $dynamic_sms_max_id)->where("campaign_id", $campaign_id)->update(["status" => 2]);
         // echo $min_id . '/' . $max_id;
         if ($min_id != 0 && $max_id != 0) {
-            echo BulkService::send($campaign_id, $min_id, $max_id, $limit);
+            if($campaign_id > 0){
+                $cron_id = DB::table('crontab')->insertGetId([
+                    'cron_name' => 'bulk',
+                    'campaign_id' => $campaign_id,
+                    'min_id' => $min_id,
+                    'max_id' =>  $max_id,
+                    'execute_time' => date('Y-m-d H:i:s')
+                ]);
+            }
+            echo BulkService::send($campaign_id, $min_id, $max_id, $limit, $cron_id);
+            if($campaign_id > 0){
+                DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+            }
         } else {
             $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
-            if($countFailed > 0){
+            $camp = Campaign::where('id', $campaign_id)->first();
+            $retryCount = ($camp ? $camp->retry +1 : 0);
+            if($countFailed > 0 && $retryCount < 10){
                 echo "Retry Campaign";
-                $camp = Campaign::where('id', $campaign_id)->first();
-                $retryCount = $camp->retry +1;
                 Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
                 sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
                 DynamicSMS::where('campaign_id', $campaign_id)->update(['status' => 1]);
@@ -816,9 +819,11 @@ public function balance(Request $r)
                 $finish=  Campaign::where('id', $campaign_id)->update(['status' => 1]);
                 if($finish){echo "Sent";}else{echo "Not Exist";}
             }
-            
+
         }
-        DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+        if($campaign_id > 0){
+            DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+        }
     }
 
     public function getOperator($number)
@@ -1163,7 +1168,7 @@ public function balance(Request $r)
                         //echo count($contacts);exit;
 
                         
-                        $response = $this->apiSMSsend($campaign_id,$totalcost);
+                        $response = $this->apiSMSsend($campaign_id);
                        
                         //$response_array["reportsid"] = $campaign_id;
                         //$response_array["delivery_status"] = [];

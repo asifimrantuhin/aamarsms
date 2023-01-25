@@ -35,6 +35,13 @@ class SendSMS extends Model {
 
         if (isset($campaigns)) {
             $campaign_id = $campaigns->id;
+            if($campaign_id > 0){
+                $cron_id = DB::table('crontab')->insertGetId([
+                    'cron_name' => 'single',
+                    'campaign_id' => $campaign_id, 
+                    'execute_time' => date('Y-m-d H:i:s')
+                ]);
+            }
             $group_id = explode(',', $campaigns->group_id);
             $sms_body = isset($campaigns->text_body) ? $campaigns->text_body : '';
             $sender = isset($campaigns->sender) ? $campaigns->sender : '';
@@ -92,22 +99,20 @@ class SendSMS extends Model {
                            
                             if ($contact->operator == 'RB') {
                                 $response = SendSMS::RobiApi($contacts_arr, $campaigns->sender);
-                                $vendor_api = 'ROBIAPI';
+                                $vendor_api = 'robi';
                             } else if ($contact->operator == 'AL') {
                                 $response = SendSMS::RobiApi($contacts_arr, $campaigns->sender);
-                                $vendor_api = 'ROBIAPI';
+                                $vendor_api = 'robi';
                             } else if ($contact->operator == 'BL') {
                                 $response = SendSMS::BanglalinkApi($contacts_arr, $campaigns->sender);
-                                $vendor_api = 'BanglalinkApi';
+                                $vendor_api = 'banglalink';
                             } else if ($contact->operator == 'TL') {
                             	//echo "teletalkk";
                                 $response = SendSMS::TeleTalkApi($contacts_arr, $campaigns->sender);
-                                $vendor_api = 'TeleTalkApi';
+                                $vendor_api = 'teletalk';
                             } else if ($contact->operator == 'GP') {
                                 $response = SendSMS::gpApiNew($contacts_arr, $campaigns->sender);
-                                $vendor_api = 'GpApi';
-
-
+                                $vendor_api = 'gp';
                             }
 
                             $res = json_decode($response);
@@ -230,6 +235,9 @@ class SendSMS extends Model {
                 }
                 
             }
+            if($campaign_id > 0){
+                DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+            }
         }
     }
 
@@ -238,6 +246,9 @@ class SendSMS extends Model {
     public static function BanglalinkApi($contacts_arr, $mask = '') {
 
         //https://vas.banglalink.net/sendSMS/sendSMS?userID=ajratech2&passwd=ajratech2@Kqn183&sender=&message=testing&msisdn=8801829673377
+
+        
+
         if (!$mask) {
             $mask = '';
         }
@@ -250,14 +261,24 @@ class SendSMS extends Model {
         }
         $smsStr = rtrim($smsStr, ',');
 
-        //Need Creadentials
+        //nonmasking credential
+        // $parameteres = [
+        //     'userID' => 'ajratech2',
+        //     'passwd' => 'ajratech2@Kqn183',
+        //     'sender' => $mask,
+        //     'message' => $message, 
+        //     'msisdn' => $smsStr,
+        // ];
+
         $parameteres = [
-            'userID' => 'ajratech2',
-            'passwd' => 'ajratech2@Kqn183',
+            'userID' => 'ajratech@api',
+            'passwd' => 'ajratech@api@Tbu192',
             'sender' => $mask,
-            'message' => $message, //str_replace('+', '%20', $message),
+            'message' => $message, 
             'msisdn' => $smsStr,
         ];
+
+        
 
 
 
@@ -950,7 +971,7 @@ public static function gpBalance() {
 
     }
 
-    public static function ranksTelBulkSMS($contacts_arr, $senderId=''){
+    public static function ranksTelBulkSMS($contacts_arr, $senderId='', $cron_id=''){
         $smsArray =[];
         $smstext = '';
         foreach ($contacts_arr as $value) {
@@ -1000,6 +1021,16 @@ public static function gpBalance() {
         
         $jsondata = json_encode($data);
         //echo $jsondata;exit;
+        //Cron Update
+        if($cron_id){
+            DB::table('crontab')->where('id', $cron_id)->update([
+                'req_url' => 'http://api.rankstelecom.com/api/v3/sendsms/json',
+                'payload' => $jsondata
+            ]);
+        }
+        
+
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'http://api.rankstelecom.com/api/v3/sendsms/json',
@@ -1017,7 +1048,17 @@ public static function gpBalance() {
         ));
         $response = curl_exec($curl);
         curl_close($curl);
+
+        if($cron_id){
+            DB::table('crontab')->where('id', $cron_id)->update([
+                'response' => $response
+            ]);
+        }
+        
         $response = json_decode($response);
+
+        
+
 
         $balance = SendSMS::RanksTelBalance();
         APIStatus::where('name','rankstel')->update([
@@ -1138,7 +1179,7 @@ public static function gpBalance() {
         
     }
 
-    public static function routeSMS($vendor_name, $contacts_arr, $mask='',  $sms_type='') {
+    public static function routeSMS($vendor_name, $contacts_arr, $mask='',  $sms_type='', $cron_id='') {
 
         $response = '';
         switch ($vendor_name) {
@@ -1156,7 +1197,7 @@ public static function gpBalance() {
                 $response = SendSMS::gpApiNew($contacts_arr, $mask,$sms_type);
                 break;
             case "rankstel":
-                $response = SendSMS::ranksTelBulkSMS($contacts_arr, $mask);
+                $response = SendSMS::ranksTelBulkSMS($contacts_arr, $mask, $cron_id);
                 break;
             // case "mirtel":
             //     $response = SendSMS::mirTel($contacts_arr,$sms_type);

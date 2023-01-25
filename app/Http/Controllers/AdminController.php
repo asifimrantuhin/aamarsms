@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Validator;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Carbon;
 use DB;
+use Illuminate\Pagination\Paginator;
 
 class AdminController extends Controller
 {
@@ -186,21 +187,48 @@ class AdminController extends Controller
 
     }
 
-
     public function VendorTransactionsHistory(Request $request) {
+        $from_date = $request->input('from_date');
+        $to_date = $request->input('to_date');
+
+
+        if (empty($from_date)) {
+            $from_date = '2022-01-01';
+        } else {
+            $from_date = $from_date;
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d');
+        } else {
+            $to_date = $to_date;
+        }
+
+        
+        $vendorList = DB::select("CALL FinancialReport('".$from_date."', '".$to_date."')");
+
+
+
+        return view('admin/management/report/operator_sms_history_v2')->with([
+                    'vendorList' => $vendorList
+               ]);     
+
+    }
+
+
+    public function VendorTransactionsHistory_OLD(Request $request) {
         $from_date = $request->input('from_date');
         $to_date = $request->input('to_date');
         if ($from_date || $to_date) {
             if (empty($from_date)) {
-                $from_date = '2019-01-01 00:00:00';
+                $from_date = '2019-01-01';
             }
             if (empty($to_date)) {
-                $to_date = date('Y-m-d H:i:s');
+                $to_date = date('Y-m-d');
             }
 
             $sms_transactions = sms_transactions::select('vendor_api as vendor', DB::raw('COUNT(*) as vendor_sms_count'))
                     ->where('status', 1)
-                    ->where('created_at', '>', $from_date)
+                    ->where('created_at', '>', $from_date. ' 00:00:00')
                     ->where('created_at', '<', $to_date . ' 23:59:59')
                     ->groupBy('vendor_api')
                     ->orderBy('vendor_sms_count', 'DESC')
@@ -290,13 +318,92 @@ class AdminController extends Controller
                 ->get();
 
 
-        return view('admin.management.report.user_sms')->with([
+        return view('admin/management/report/user_sms')->with([
                     'sms_report' => $sms_report,
                     'vendor_list' => $vendor_list,
                     'userlist' => $userlist
         ]);
     }
 
+    public function ResellerSMSReport(Request $request) {
+        $user = $request->input('user');
+        $from_date = $request->input('from_date');
+        $to_date = $request->input('to_date');
+        if (empty($from_date)) {
+            $from_date = '2022-01-01 00:00:00';
+        } else {
+            $from_date = $from_date . ' 00:00:00';
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d H:i:s');
+        } else {
+            $to_date = $to_date . ' 23:59:59';
+        }
+
+        
+
+        $userCond ='';
+        if($user){
+            $userCond .= " AND u.parent_user = ".$user;
+        }
+        $dateCond = " AND DATE_FORMAT(usc.sent_date, '%Y-%m-%d') BETWEEN '".$from_date."' AND '".$to_date."'";
+        
+        $sms_report = DB::select("SELECT u.parent_user, DATE_FORMAT(usc.sent_date, '%Y-%m-%d') AS sent_date, 
+            SUM(robi) AS robi, SUM(gp) AS gp, SUM(airtel) AS airtel, SUM(bl) AS bl, SUM(teletalk) AS teletalk,
+            SUM(usc.mask) AS mask, SUM(usc.nonmask) AS nonmask, SUM(usc.total_sms) AS total_sms, ROUND(SUM(total_price),2) AS customer_charged, ROUND(SUM(total_sell_price),2) AS total_sell_price 
+
+            FROM `user-sms-count` AS usc
+            JOIN users u ON u.id = usc.user_id
+            JOIN users u2 ON u2.id = u.parent_user 
+            WHERE u2.parent_user IN (1,2)
+            $userCond
+            $dateCond
+            GROUP BY usc.sent_date, u.parent_user
+            ORDER BY usc.sent_date DESC");
+
+        //$sms_report = Paginator::make($query);
+
+        // $collection = collect($query);
+        // $perPage = 10;
+        // $currentPage = $request->get('page') - 1; 
+        // $pagedData = $collection->slice($currentPage * $perPage, $perPage)->all();
+        // $sms_report= new Paginator($pagedData, $perPage);
+
+
+        $resellers = DB::table('users')->whereIn('parent_user', [1,2])->whereNotIn('id', [1])->get();
+        $vendor_list = sms_transactions::select('vendor_api')
+                ->where('status', 1)
+                ->groupBy('vendor_api')
+                ->get();
+
+        return view('admin/management/report/reseller_sms')->with([
+                    'sms_report' => $sms_report,
+                    'vendor_list' => $vendor_list,
+                    'userlist' => $resellers
+        ]);
+    }
+
+    public function FinancialReport(Request $request){
+        $from_date = $request->input('date_from');
+        $to_date = $request->input('date_to');
+        if (empty($from_date)) {
+            $from_date = '2022-01-01';
+        } else {
+            $from_date = $from_date;
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d');
+        } else {
+            $to_date = $to_date;
+        }
+
+        
+        $vendorList = DB::select("CALL FinancialReport('".$from_date."', '".$to_date."')");
+
+        return view('admin/management/report/financial_report')->with([
+                    'vendorList' => $vendorList
+        ]);
+    }
 
 
     public function SMSTransactions(Request $request) {
@@ -318,21 +425,21 @@ class AdminController extends Controller
             }
             
 
-            $sms_report = UserSmsCounter::select(DB::raw('DATE(sent_date) as date'),DB::raw('SUM(mask) AS mask'),DB::raw('SUM(nonmask) AS nonmask'), DB::raw('SUM(gp) AS gp'), DB::raw('SUM(bl) AS bl'), DB::raw('SUM(robi) AS robi'), DB::raw('SUM(teletalk) AS teletalk'), DB::raw('SUM(airtel) AS airtel'), DB::raw('SUM(gp + robi + airtel + bl + teletalk) as total_sms'))
+            $sms_report = UserSmsCounter::select(DB::raw('DATE(sent_date) as date'),DB::raw('SUM(mask) AS mask'),DB::raw('SUM(nonmask) AS nonmask'), DB::raw('SUM(gp) AS gp'), DB::raw('SUM(bl) AS bl'), DB::raw('SUM(robi) AS robi'), DB::raw('SUM(teletalk) AS teletalk'), DB::raw('SUM(airtel) AS airtel'), DB::raw('SUM(total_sms) as total_sms'),DB::raw('SUM(total_price) as total_price'))
                     ->where('sent_date', '>', $from_date. ' 00:00:00')
                     ->where('sent_date', '<', $to_date . ' 23:59:59')
                     ->groupBy(DB::raw('DATE(sent_date)'))
                     ->orderBy(DB::raw('DATE(sent_date)'), 'DESC')
                     ->paginate(10);
         } else {
-            $sms_report = UserSmsCounter::select(DB::raw('DATE(sent_date) as date'),DB::raw('SUM(mask) AS mask'),DB::raw('SUM(nonmask) AS nonmask'),DB::raw('SUM(gp) AS gp'), DB::raw('SUM(bl) AS bl'), DB::raw('SUM(robi) AS robi'), DB::raw('SUM(teletalk) AS teletalk'), DB::raw('SUM(airtel) AS airtel'), DB::raw('SUM(gp + robi + airtel + bl + teletalk) as total_sms'))
+            $sms_report = UserSmsCounter::select(DB::raw('DATE(sent_date) as date'),DB::raw('SUM(mask) AS mask'),DB::raw('SUM(nonmask) AS nonmask'),DB::raw('SUM(gp) AS gp'), DB::raw('SUM(bl) AS bl'), DB::raw('SUM(robi) AS robi'), DB::raw('SUM(teletalk) AS teletalk'), DB::raw('SUM(airtel) AS airtel'), DB::raw('SUM(total_sms) as total_sms'),DB::raw('SUM(total_price) as total_price'))
                     ->groupBy(DB::raw('DATE(sent_date)'))
                     ->orderBy(DB::raw('DATE(sent_date)'), 'DESC')
                     ->paginate(10);
         }
 
 
-        return view('admin.management.report.sms_transaction_report')->with([
+        return view('admin/management/report/sms_transaction_report')->with([
                     'sms_report' => $sms_report
         ]);
     }

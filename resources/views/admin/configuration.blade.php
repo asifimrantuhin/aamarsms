@@ -21,37 +21,28 @@
                             <td>
                                 <select name="priority_1" class="form-control" required>
                                     <option value="" >Select vendor</option>
-                                    <option value="mirtel" <?php if($api_status[0]->priority_1 =="mirtel") echo 'selected="selected"'; ?>>Mirtel</option>
-                                    <option value="rankstel" <?php if($api_status[0]->priority_1 =="rankstel") echo 'selected="selected"'; ?>>RanksTel</option>
-                                    <option value="adn" <?php if($api_status[0]->priority_1 =="adn") echo 'selected="selected"'; ?>>ADN</option>
-                                    <option value="grameenphone" <?php if($api_status[0]->priority_1 =="grameenphone") echo 'selected="selected"'; ?>>GP</option>
-                                    <option value="robi" <?php if($api_status[0]->priority_1 =="robi") echo 'selected="selected"'; ?>>Robi</option>
-                                    <option value="teletalk" <?php if($api_status[0]->priority_1 =="teletalk") echo 'selected="selected"'; ?>>Teletalk</option>
-                                    <option value="banglalink" <?php if($api_status[0]->priority_1 =="banglalink") echo 'selected="selected"'; ?>>Banglalink</option>
+                                    
+                                    @foreach ($vendors as $op)
+                                    <option value="{{$op->name}}" @if($api_status[0]->priority_1 ==$op->name) selected @endif>{{strtoupper($op->name)}}</option>
+                                    @endforeach
                                </select>
                             </td>
                             <td>
                                 <select name="priority_2" class="form-control" required>
                                     <option value="" >Select vendor</option>
-                                    <option value="mirtel" <?php if($api_status[0]->priority_2 =="mirtel") echo 'selected="selected"'; ?>>Mirtel</option>
-                                    <option value="rankstel" <?php if($api_status[0]->priority_2 =="rankstel") echo 'selected="selected"'; ?>>RanksTel</option>
-                                    <option value="adn" <?php if($api_status[0]->priority_2 =="adn") echo 'selected="selected"'; ?>>ADN</option>
-                                    <option value="grameenphone" <?php if($api_status[0]->priority_2 =="grameenphone") echo 'selected="selected"'; ?>>GP</option>
-                                    <option value="robi" <?php if($api_status[0]->priority_2 =="robi") echo 'selected="selected"'; ?>>Robi</option>
-                                    <option value="teletalk" <?php if($api_status[0]->priority_2 =="teletalk") echo 'selected="selected"'; ?>>Teletalk</option>
-                                    <option value="banglalink" <?php if($api_status[0]->priority_2 =="banglalink") echo 'selected="selected"'; ?>>Banglalink</option>
+                                    @foreach ($vendors as $op)
+                                    <option value="{{$op->name}}" @if($api_status[0]->priority_2 ==$op->name) selected @endif>{{strtoupper($op->name)}}</option>
+                                    @endforeach
+                                    
                                </select>
                             </td>
                             <td>
                                 <select name="priority_3" class="form-control" required>
                                     <option value="" >Select vendor</option>
-                                    <option value="mirtel" <?php if($api_status[0]->priority_3 =="mirteltel") echo 'selected="selected"'; ?>>Mirtel</option>
-                                    <option value="rankstel" <?php if($api_status[0]->priority_3 =="rankstel") echo 'selected="selected"'; ?>>RanksTel</option>
-                                    <option value="adn" <?php if($api_status[0]->priority_3 =="adn") echo 'selected="selected"'; ?>>ADN</option>
-                                    <option value="grameenphone" <?php if($api_status[0]->priority_3 =="grameenphone") echo 'selected="selected"'; ?>>grameenphone</option>
-                                    <option value="robi" <?php if($api_status[0]->priority_3 =="robi") echo 'selected="selected"'; ?>>Robi</option>
-                                    <option value="teletalk" <?php if($api_status[0]->priority_3 =="teletalk") echo 'selected="selected"'; ?>>Teletalk</option>
-                                    <option value="banglalink" <?php if($api_status[0]->priority_3 =="banglalink") echo 'selected="selected"'; ?>>Banglalink</option>
+                                   @foreach ($vendors as $op)
+                                    <option value="{{$op->name}}" @if($api_status[0]->priority_3 ==$op->name) selected @endif>{{strtoupper($op->name)}}</option>
+                                    @endforeach
+                                    
                                </select>
                             </td>
                         </tr>
