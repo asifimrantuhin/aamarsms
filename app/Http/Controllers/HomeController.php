@@ -274,9 +274,8 @@ class HomeController extends Controller
         $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
 
         $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
-        // dd($min_id);
         $max_id = ($min_id) ? ($min_id + $limit) : 0;
-        // dd($max_id);
+
         $dynamic_sms_min_id = DynamicSMS::where('campaign_id', $campaign_id)->where('status', 1)->min('id');
         $dynamic_sms_max_id = ($dynamic_sms_min_id) ? ($dynamic_sms_min_id + $limit) : 0;
        
@@ -306,7 +305,7 @@ class HomeController extends Controller
 
             
             if($campaigns->dynamic_sms){
-                DynamicSMS::where('id', '>=', $dynamic_sms_min_id)->where('id', '<=', $dynamic_sms_max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+                DynamicSMS::where('id', '>=', $min_id)->where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
             }else{
                 sms_senders::where('id', '>=', $min_id)->where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
             }
