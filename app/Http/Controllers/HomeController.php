@@ -303,8 +303,14 @@ class HomeController extends Controller
                     'execute_time' => date('Y-m-d H:i:s')
                 ]);
             }
-            sms_senders::where('id', '>=', $min_id)->where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
-            DynamicSMS::where('id', '<=', $dynamic_sms_min_id)->where('id', '<=', $dynamic_sms_max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+
+            
+            if($campaigns->dynamic_sms){
+                DynamicSMS::where('id', '>=', $dynamic_sms_min_id)->where('id', '<=', $dynamic_sms_max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+            }else{
+                sms_senders::where('id', '>=', $min_id)->where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+            }
+            
             
             echo BulkService::send($campaign_id, $min_id, $max_id, $limit,$cron_id);
             
