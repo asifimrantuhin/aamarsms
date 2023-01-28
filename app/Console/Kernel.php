@@ -17,8 +17,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-
-        $schedule->call([HomeController::class, 'smsSending'])->everyMinute();
+        $schedule->call([HomeController::class, 'smsSending'])->everySeconds(30);
+        
+        //$schedule->call([HomeController::class, 'smsSending'])->everyMinute();
         // $schedule->call([HomeController::class, 'smsSending']);
         // $schedule->call([HomeController::class, 'smsSending']);
 

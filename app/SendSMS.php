@@ -1025,7 +1025,8 @@ public static function gpBalance() {
         if($cron_id){
             DB::table('crontab')->where('id', $cron_id)->update([
                 'req_url' => 'http://api.rankstelecom.com/api/v3/sendsms/json',
-                'payload' => $jsondata
+                'payload' => $jsondata,
+                'rankstel_req_start' => date('Y-m-d H:i:s')
             ]);
         }
         
@@ -1051,7 +1052,8 @@ public static function gpBalance() {
 
         if($cron_id){
             DB::table('crontab')->where('id', $cron_id)->update([
-                'response' => $response
+                'response' => $response,
+                'rankstel_req_end' => date('Y-m-d H:i:s')
             ]);
         }
         

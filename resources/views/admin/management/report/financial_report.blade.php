@@ -47,8 +47,9 @@
                                         <th class="text-center">M. SMS Count</th>
                                         <th class="text-center">NM. SMS Count</th>
                                         <th class="text-center">Total Cost</th>
+                                        <th class="text-center">Total Sell</th>
+                                        <th class="text-center">Total Profit</th>
                                         <th class="text-center">Recharge Amount</th>
-
                                         <th class="text-center">Calc Balance</th>
                                         <th class="text-center">API Balance</th>
                                         
@@ -62,6 +63,8 @@
 	                                	$total_cost = 0;
 	                                	$total_recharge = 0;
 	                                	$total_calc_balance = 0;
+                                        $total_v_sell = 0;
+                                        $total_v_profit = 0;
 	                                	$total_sell_amount = 0;
                                 	@endphp
                                    
@@ -84,6 +87,11 @@
                                 	$total_recharge += $operator->recharge_amount;
                                 	$total_calc_balance += ($operator->recharge_amount -$operator->totalcost);
                                 	$total_sell_amount += $operator->totalsell;
+
+                                    $total_v_sell += $operator->totalsell; 
+                                    $total_v_profit += ($operator->totalsell -$operator->totalcost); 
+
+
                                 	@endphp
 
                                     <tr>
@@ -93,6 +101,8 @@
                                         <td class="text-center">{{number_format($operator->masksms, 0)}}</td>
                                         <td class="text-center">{{number_format($operator->nonmasksms, 0)}}</td>
                                         <td class="text-right">{{number_format($operator->totalcost, 2)}}</td>
+                                        <td class="text-right">{{number_format($operator->totalsell, 2)}}</td>
+                                        <td class="text-right">{{number_format($operator->totalsell - $operator->totalcost, 2)}}</td>
                                         <td class="text-right">{{number_format($operator->recharge_amount, 0)}}</td>
                                         <td class="text-right">{{number_format(($operator->recharge_amount -$operator->totalcost) , 0)}}</td>
                                         <td class="text-right">
@@ -106,6 +116,8 @@
                                         <th class="text-center">{{number_format($total_mask_sms)}}</th>
                                         <th class="text-center">{{number_format($total_nonmask_sms)}}</th>
                                         <th class="text-right">{{number_format($total_cost,2)}}</th>
+                                        <th class="text-right">{{number_format($total_v_sell,2)}}</th>
+                                        <th class="text-right">{{number_format($total_v_profit,2)}}</th>
                                         <th class="text-right">{{number_format($total_recharge)}}</th>
                                         <th class="text-right">{{number_format($total_calc_balance)}}</th>
                                         <th class="text-right">{{number_format($total_api_balance)}}</th>
@@ -114,18 +126,19 @@
                                     <tr>
                                         <th colspan="5" class="text-right">Total Cost </th>
                                         <th class="text-right">{{number_format($total_cost,2)}}</th>
-                                        <th colspan="3"></th>
+                                        
+                                        <th colspan="5"></th>
                                         
                                     </tr>
                                     <tr>
                                         <th colspan="5" class="text-right">Total Sell/Revenue </th>
                                         <th class="text-right">{{number_format($total_sell_amount,2)}}</th>
-                                        <th colspan="3"></th>
+                                        <th colspan="5"></th>
                                     </tr>
                                     <tr>
                                         <th colspan="5" class="text-right">Total Profit/Loss </th>
                                         <th class="text-right">{{number_format($total_sell_amount - $total_cost, 2)}}</th>
-                                        <th colspan="3"></th>
+                                        <th colspan="5"></th>
                                     </tr>
                                 </tbody>
                             </table>

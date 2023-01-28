@@ -37,7 +37,7 @@ class SMSSender extends Command
      */
     public function handle()
     {
-        info('Working');
+        info('SMS sender Working');
         return 0;
     }
 }
