@@ -778,7 +778,7 @@ public function balance(Request $r)
 
         $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
         $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
-        $max_id = ($min_id) ? ($min_id + $limit) : 0;
+        $max_id = ($min_id) ? ($min_id + ($limit-1)) : 0;
 
         $dynamic_sms_min_id = DynamicSMS::where('campaign_id', $campaign_id)->where('status', 1)->min('id');
         $dynamic_sms_max_id = ($dynamic_sms_min_id) ? ($dynamic_sms_min_id + $limit) : 0;

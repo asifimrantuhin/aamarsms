@@ -25,7 +25,7 @@ class BulkService extends Model {
         $skip = 0;
         $campaigns = Campaign::select('group_id', 'mask', 'start_date','campaign_cost', 'text_body', 'sender', 'id', 'dynamic_sms', 'sms_count', 'user_id','sms_type')
                 ->where('id', $campaign_id)
-                ->where('status', 4) //2
+                ->whereIn('status', [2,4]) //2
                 ->where('start_date', '<=', date('Y-m-d H:i:s'))
                 ->first();
         $contacts = '';
@@ -35,30 +35,47 @@ class BulkService extends Model {
             $sender = isset($campaigns->sender) ? $campaigns->sender : '';
 
             $sms_count = 0;
-            if ($campaigns->dynamic_sms == 1) {
+
+            // Start Additional code for preventing duplication
+            if($campaigns->dynamic_sms){
+                DynamicSMS::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 3]);
+            }else{
+                sms_senders::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 3]);
+            }
+
+            // End Additional code for preventing duplication
+
+
+
+            if ($campaigns->dynamic_sms) {
                 $contacts = DynamicSMS::select('id', 'country_code', 'message', 'number', 'operator', 'user_id', 'sms_cost', 'sms_count')
                                 ->where('campaign_id', $campaigns->id) 
                                 ->whereBetween('id', [$min_id, $max_id])
-                                ->where('status', 2)
+                                ->where('status', 3)
                                 ->orderBy('id', 'desc')
                                 ->take($limit)->get();
                 $sms_count = isset($campaigns->sms_count) ? $campaigns->sms_count : 0;
             } else {
                 $contacts = sms_senders::select('id', 'country_code', 'number', 'operator', 'user_id', 'group_id', 'reseller_id')
                                 ->whereIn('group_id', $group_id)
+                                ->where('campaign_id', $campaigns->id) 
                                 ->whereBetween('id', [$min_id, $max_id])
-                                ->where('status', 2)
+                                ->where('status', 3)
                                 ->orderBy('id', 'asc')
                                 ->take($limit)->get();
 
                 $sms_count = isset($campaigns->sms_count) ? $campaigns->sms_count : 0;
             }
 
+            
+
+
+
             $res = '';
 
             if (count($contacts) > 0) {
                 foreach ($contacts as $key => $contact) {
-                     sms_senders::where('campaign_id', $campaign_id)->where('number', '=', $contact->number)->update(['status' => 2]);
+                     // sms_senders::where('campaign_id', $campaign_id)->where('number', '=', $contact->number)->update(['status' => 2]);
                     # code...
                     $data = [];
                     $data['to'] = $contact->country_code . $contact->number;
@@ -269,6 +286,13 @@ class BulkService extends Model {
             }
 
         }
+
+
+        if($campaigns->dynamic_sms){
+                DynamicSMS::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 2]);
+            }else{
+                sms_senders::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 2]);
+            }
     }
 
 

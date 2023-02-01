@@ -285,7 +285,7 @@ class HomeController extends Controller
             if ($min_id > 0) {
                 
                 echo "SMS SENDING PROCESSING...";
-                $max_id = $min_id + $limit;
+                $max_id = $min_id + ($limit-1);
                 echo $min_id . '/' . $max_id. '  / ';
                 $cron_id = 0;
                 if($campaign_id > 0){
