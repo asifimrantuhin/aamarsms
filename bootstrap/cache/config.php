@@ -730,22 +730,18 @@
     'default_rate' => 
     array (
       'GP' => 0.4,
-      'BL' => 0.37,
+      'BL' => 0.4,
       'AL' => 0.4,
-      'TL' => 0.35,
+      'TL' => 0.34,
       'RB' => 0.4,
     ),
     'vendor_price' => 
     array (
-      'GpApi' => 0.4,
-      'BanglalinkApi' => 0.37,
-      'AL' => 0.4,
-      'TeleTalkApi' => 0.35,
-      'teletalk' => 0.19,
-      'ROBIAPI' => 0.4,
-      'robi' => 0.31,
       'rankstel' => 0.14,
-      'RanksTel' => 0.14,
+      'gp' => 0.4,
+      'robi' => 0.4,
+      'banglalink' => 0.4,
+      'teletalk' => 0.34,
       'reve' => 0.15,
     ),
   ),

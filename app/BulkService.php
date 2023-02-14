@@ -195,95 +195,99 @@ class BulkService extends Model {
                             $res = json_decode($response);
                         }
                     }
+
+
+                    // echo $response->success ; exit ;
+                    if (isset($res->success) && $res->success == 1) {
+                        //echo "Final response";
+
+                        if(isset($res->smsidArr)){
+                            $smsidArr = $res->smsidArr;
+                            $price = null;
+                            if ($campaigns->dynamic_sms == 1) {
+                                $price = isset($contact->sms_cost) ? $contact->sms_cost : '';
+                            }
+                            $f = 0;
+                            if (count($contacts) > 0) {
+                                foreach ($contacts as $key => $contact) {
+                                    $data = array();
+                                    $data['user_id'] = $contact->user_id;
+                                    $data['group_id'] = isset($contact->group_id) ? $contact->group_id : 0;
+                                    $data['operator'] = $contact->operator;
+                                    $data['campaign_id'] = $campaigns->id;
+                                    $data['country_code'] = $contact->country_code;
+                                    $data['mobile_number'] = $contact->country_code . $contact->number;
+                                    $data['vendor_api'] = $vendor_api;
+                                    $data['reseller_id'] = isset($contact->reseller_id) ? $contact->reseller_id : 0;
+                                    $data['created_at'] = date('Y-m-d H:i:s');
+                                    $data['comments'] = $res->msg;
+                                    $data['status'] = $res->success;
+                                    $data['senderid'] = $res->senderid;
+                                    $data['smsid'] = (isset($smsidArr[$f]->MessageId) ? $smsidArr[$f]->MessageId: $smsidArr[$f]) ;
+                                    $data['price'] = $price;
+                                    $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
+                                    sms_transactions::insert($data);
+
+                                    $operator =  $data['operator'];
+                                    $user_id = $data['user_id'];
+                                    $sms_count = $data['sms_count'];
+
+                                    if ($campaigns->dynamic_sms == 1) {
+                                        DB::table('dynamic_sms')->where('id', $contact->id)->delete();
+                                    }else{
+                                        sms_senders::where('id', $contact->id)->delete();
+                                    }
+                                    //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                                    $f++;
+                                }
+                            }
+
+                        }else{
+
+                            $price = null;
+                            if ($campaigns->dynamic_sms == 1) {
+                                $price = isset($contact->sms_cost) ? $contact->sms_cost : '';
+                            }
+                            if (count($contacts) > 0) {
+                                foreach ($contacts as $key => $contact) {
+                                    $data = array();
+                                    $data['user_id'] = $contact->user_id;
+                                    $data['group_id'] = isset($contact->group_id) ? $contact->group_id : 0;
+                                    $data['operator'] = $contact->operator;
+                                    $data['campaign_id'] = $campaigns->id;
+                                    $data['country_code'] = $contact->country_code;
+                                    $data['mobile_number'] = $contact->country_code . $contact->number;
+                                    $data['vendor_api'] = $vendor_api;
+                                    $data['reseller_id'] = isset($contact->reseller_id) ? $contact->reseller_id : 0;
+                                    $data['created_at'] = date('Y-m-d H:i:s');
+                                    $data['comments'] = $res->msg;
+                                    $data['status'] = $res->success;
+                                    $data['smsid'] = $res->smsid;
+                                    $data['price'] = $price;
+                                    $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
+                                    sms_transactions::insert($data);
+
+                                    $operator =  $data['operator'];
+                                    $user_id = $data['user_id'];
+                                    $sms_count = $data['sms_count'];
+                                    if ($campaigns->dynamic_sms == 1) {
+                                        DB::table('dynamic_sms')->where('id', $contact->id)->delete();
+                                    }else{
+                                        sms_senders::where('id', $contact->id)->delete();
+                                    }
+                                    //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                                }
+                            }
+                        }
+                        
+                    }
+
                 }
             }
 
         
            
-            // echo $response->success ; exit ;
-            if (isset($res->success) && $res->success == 1) {
-                //echo "Final response";
-
-                if(isset($res->smsidArr)){
-                    $smsidArr = $res->smsidArr;
-                    $price = null;
-                    if ($campaigns->dynamic_sms == 1) {
-                        $price = isset($contact->sms_cost) ? $contact->sms_cost : '';
-                    }
-                    $f = 0;
-                    if (count($contacts) > 0) {
-                        foreach ($contacts as $key => $contact) {
-                            $data = array();
-                            $data['user_id'] = $contact->user_id;
-                            $data['group_id'] = isset($contact->group_id) ? $contact->group_id : 0;
-                            $data['operator'] = $contact->operator;
-                            $data['campaign_id'] = $campaigns->id;
-                            $data['country_code'] = $contact->country_code;
-                            $data['mobile_number'] = $contact->country_code . $contact->number;
-                            $data['vendor_api'] = $vendor_api;
-                            $data['reseller_id'] = isset($contact->reseller_id) ? $contact->reseller_id : 0;
-                            $data['created_at'] = date('Y-m-d H:i:s');
-                            $data['comments'] = $res->msg;
-                            $data['status'] = $res->success;
-                            $data['senderid'] = $res->senderid;
-                            $data['smsid'] = (isset($smsidArr[$f]->MessageId) ? $smsidArr[$f]->MessageId: $smsidArr[$f]) ;
-                            $data['price'] = $price;
-                            $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
-                            sms_transactions::insert($data);
-
-                            $operator =  $data['operator'];
-                            $user_id = $data['user_id'];
-                            $sms_count = $data['sms_count'];
-
-                            if ($campaigns->dynamic_sms == 1) {
-                                DB::table('dynamic_sms')->where('id', $contact->id)->delete();
-                            }else{
-                                sms_senders::where('id', $contact->id)->delete();
-                            }
-                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
-                            $f++;
-                        }
-                    }
-
-                }else{
-
-                    $price = null;
-                    if ($campaigns->dynamic_sms == 1) {
-                        $price = isset($contact->sms_cost) ? $contact->sms_cost : '';
-                    }
-                    if (count($contacts) > 0) {
-                        foreach ($contacts as $key => $contact) {
-                            $data = array();
-                            $data['user_id'] = $contact->user_id;
-                            $data['group_id'] = isset($contact->group_id) ? $contact->group_id : 0;
-                            $data['operator'] = $contact->operator;
-                            $data['campaign_id'] = $campaigns->id;
-                            $data['country_code'] = $contact->country_code;
-                            $data['mobile_number'] = $contact->country_code . $contact->number;
-                            $data['vendor_api'] = $vendor_api;
-                            $data['reseller_id'] = isset($contact->reseller_id) ? $contact->reseller_id : 0;
-                            $data['created_at'] = date('Y-m-d H:i:s');
-                            $data['comments'] = $res->msg;
-                            $data['status'] = $res->success;
-                            $data['smsid'] = $res->smsid;
-                            $data['price'] = $price;
-                            $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
-                            sms_transactions::insert($data);
-
-                            $operator =  $data['operator'];
-                            $user_id = $data['user_id'];
-                            $sms_count = $data['sms_count'];
-                            if ($campaigns->dynamic_sms == 1) {
-                                DB::table('dynamic_sms')->where('id', $contact->id)->delete();
-                            }else{
-                                sms_senders::where('id', $contact->id)->delete();
-                            }
-                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
-                        }
-                    }
-                }
-                
-            }
+            
 
         }
 

@@ -86,6 +86,7 @@ Route::get('op_balance',[HomeController::class,'OperatorBalance']); // Check Ope
 
 // SMS Send by API
 Route::get('api', [ApiController::class, 'api']);
+
 Route::get('otp', [ApiController::class, 'otp']);
 Route::get('balance', [ApiController::class, 'balance']);
 Route::get('smsstatus', [ApiController::class, 'smsstatus']);
