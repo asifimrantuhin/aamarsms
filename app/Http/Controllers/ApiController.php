@@ -994,7 +994,7 @@ public function balance(Request $r)
                             "created_at" => date("Y-m-d H:i:s"),
                             "updated_at" => date("Y-m-d H:i:s"),
                             "start_date" => date("Y-m-d H:i:s"),
-                            "status" => 2,
+                            "status" => 4,
                             "user_id" => Auth::user()->id,
                             "reseller_id" => Auth::user()->parent_user,
                             "text_body" => "$r->text",
