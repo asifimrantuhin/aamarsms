@@ -290,8 +290,10 @@ class HomeController extends Controller
                 $cron_id = 0;
                 $cron_check = DB::table('crontab')
                     ->where('campaign_id' , $campaign_id)
-                    ->where('min_id', $min_id)
-                    ->where('max_id',  $max_id)
+                    ->where('min_id', '>=', $min_id)
+                    // ->where('min_id','<=', $max_id)
+                    // ->where('max_id','>=',  $min_id)
+                    ->where('max_id', '<=', $max_id)
                     ->whereNull('end_time')
                     ->first();
 
