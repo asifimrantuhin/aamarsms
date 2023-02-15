@@ -291,8 +291,8 @@ class HomeController extends Controller
                 $cron_check = DB::table('crontab')
                     ->where('campaign_id' , $campaign_id)
                     ->where('min_id', '>=', $min_id)
-                    // ->where('min_id','<=', $max_id)
-                    // ->where('max_id','>=',  $min_id)
+                    ->where('min_id','<=', $max_id)
+                    ->where('max_id','>=',  $min_id)
                     ->where('max_id', '<=', $max_id)
                     ->whereNull('end_time')
                     ->first();
@@ -327,7 +327,7 @@ class HomeController extends Controller
                 $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
                 $camp = Campaign::where('id', $campaign_id)->first();
                 $retryCount = ($camp ? $camp->retry +1 : 0);
-                if($countFailed > 0 && $retryCount < 10){
+                if($countFailed > 0 && $retryCount < 3){
                     echo "Retry Campaign";
                     Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
                     sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
