@@ -437,11 +437,11 @@ class CampaignController extends Controller
         $balance = $this->currentBalance();
         $rem_bal = ($balance - $totalcost);
 
-        if($totalcon > 10 && $unicode == false){
-            return response()->json([
-                    'success' => false
-            ]);
-        }
+        // if($totalcon > 10 && $unicode == false){
+        //     return response()->json([
+        //             'success' => false
+        //     ]);
+        // }
 
 
          if ($isadmin) {
