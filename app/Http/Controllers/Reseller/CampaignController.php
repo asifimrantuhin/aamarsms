@@ -443,7 +443,6 @@ class CampaignController extends Controller
         //     ]);
         // }
 
-
          if ($isadmin) {
             //for admin
         } else {

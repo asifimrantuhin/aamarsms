@@ -14,6 +14,7 @@ use App\BulkService;
 use App\Helpers\Log;
 use App\Models\DynamicSMS;
 use App\Models\User;
+use App\Models\RatePlan;
 use DB;
 
 date_default_timezone_set("Asia/Dhaka");
@@ -770,7 +771,7 @@ public function balance(Request $r)
 
     public static function apiSMSsend($campaign_id)
     {
-        $limit = 50;
+        $limit = 200;
         $campaigns = Campaign::select("id", "dynamic_sms", "sms_count")->where("id", $campaign_id)->first();
         if($campaigns){
             $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
@@ -1262,7 +1263,7 @@ public function balance(Request $r)
         $response_array["message"] = "SMS failed";
         $response_array["response_code"] = 0;
         $response_array["campaign_cost"] = 0;
-        
+         
   
         if (!$r['username']) {
             $response_array["success"] = 0;
@@ -1301,16 +1302,16 @@ public function balance(Request $r)
         $to_number = $r['to'];
         $to = $r['to'];
         $country_code = "880";
+
+        $masking = ($mask !='' ? 1 : 0);
         
 
-        print_r($r);
         
-
-        exit;
 
 
         if (Auth::attempt(["email" => $r['username'],"password" => $r['password'],"status" => 1,"api_enabled" => 1])) {
             $user_id = Auth::user()->id;
+            $user_role = Auth::user()->role;
             $campaign_id = "";
             $balance = Common::getCurrentBalanceById(Auth::user()->id);
             // echo $balance;exit;
@@ -1321,9 +1322,9 @@ public function balance(Request $r)
                 return json_encode($response_array);
             }
 
-            if ($r->text !== "" && $r->to !== "") {
-                if (strlen($r->text) != strlen(utf8_decode($r->text))) {
-                    $strlength = strlen(utf8_decode($r->text));
+            if (!empty($smstext) && !empty($to_number)) {
+                if (strlen($smstext[0]) != strlen(utf8_decode($smstext[0]))) {
+                    $strlength = strlen(utf8_decode($smstext[0]));
                     if ($strlength > 70) {
                         $smsLength = $strlength / 67;
                         $smsLength = ceil($smsLength);
@@ -1331,7 +1332,7 @@ public function balance(Request $r)
                         $smsLength = 1;
                     }
                 } else {
-                    $strlength = strlen($r->text);
+                    $strlength = strlen($smstext[0]);
                     if ($strlength > 160) {
                         $smsLength = $strlength / 153;
                         $smsLength = ceil($smsLength);
@@ -1355,217 +1356,276 @@ public function balance(Request $r)
                 $isadmin = in_array($parent_user, $admin_users);
                 $totalcost = 0;
                 $resellercost = 0;
+                $totalSMS = 0;
+
+                for ($i = 0; $i < count($smstext); ++$i) {
+                   if (strlen($smstext[$i]) != strlen(utf8_decode($smstext[$i]))) {
+                        $strlength = strlen(utf8_decode($smstext[$i]));
+                        if ($strlength > 70) {
+                            $smsLength = $strlength / 67;
+                            $smsLength = ceil($smsLength);
+                        } else {
+                            $smsLength = 1;
+                        }
+                    } else {
+                        $strlength = strlen($smstext[$i]);
+                        if ($strlength > 160) {
+                            $smsLength = $strlength / 153;
+                            $smsLength = ceil($smsLength);
+                        } else {
+                            $smsLength = 1;
+                        }
+                    }
+                    $totalSMS +=$smsLength;
+                }
+
+                if($user_role == '3'){
+                    $user_rate_info = RatePlan::select('masking_price','nonmasking_price')->where('user_id', $user_id)->first();
+                    if ($masking == true || $masking == 1) {
+                        $user_rate = $user_rate_info->masking_price;
+                    } else {
+                        $user_rate = $user_rate_info->nonmasking_price;
+                    }
+                    $totalcost = $totalSMS * $user_rate;
+
+
+                    $reseller_rate_info = RatePlan::select('masking_price','nonmasking_price')->where('user_id', $parent_user)->first();
+                    if ($masking == true || $masking == 1) {
+                        $reseller_rate = $reseller_rate_info->masking_price;
+                    } else {
+                        $reseller_rate = $reseller_rate_info->nonmasking_price;
+                    }
+                    $resellercost = $totalSMS * $reseller_rate;
+
+                }elseif($user_role == '2'){
+                    $user_rate_info = RatePlan::select('masking_price','nonmasking_price')->where('user_id', $user_id)->first();
+                    if ($masking == true || $masking == 1) {
+                        $user_rate = $user_rate_info->masking_price;
+                    } else {
+                        $user_rate = $user_rate_info->nonmasking_price;
+                    }
+                    $totalcost = $totalSMS * $user_rate;
+                }
+
+                if ($balance < $totalcost) {
+                    $response_array["success"] = 0;
+                    $response_array["response_code"] = 106;
+                    $response_array["message"] =
+                        "You do not have sufficiant balance, your sms cost " .
+                        $totalcost .
+                        " but your balance is " .
+                        $balance .
+                        ", Please reacharge first.";
+                    return json_encode($response_array);
+                }
+
+            
+                if ($isadmin) {
+                    //for admin
+                } else {
+                    $reseller_balance = Common::getCurrentBalanceById($parent_user);
+                    if (number_format($reseller_balance, 4, ".", "") <
+                        $resellercost
+                    ) {
+                        $response_array["success"] = 0;
+                        $response_array["response_code"] = 107;
+                        $response_array["message"] =
+                            "Your Reseller do not have sufficiant balance, your sms cost " .
+                            $totalcost .
+                            ". Contact with Reseller. ";
+                        return json_encode($response_array);
+                    }
+                }
+
+
+                $data = [
+                    "campaign_name" => "Multitext_API_" . date("Ymdhis"),
+                    "created_at" => date("Y-m-d H:i:s"),
+                    "updated_at" => date("Y-m-d H:i:s"),
+                    "start_date" => date("Y-m-d H:i:s"),
+                    "status" => 4,
+                    "user_id" => Auth::user()->id,
+                    "campaign_created" => Auth::user()->id,
+                    "reseller_id" => Auth::user()->parent_user,
+                    "text_body" => $smstext[0],
+                    "sms_count" => Common::smsCount($smstext[0]),
+                    "campaign_cost" => $totalcost,
+                    "dynamic_sms" => 1,
+                    "group_id" => 0,
+                    "mask" => ($mask !='' ? 1 : 0),
+                    "sender" => ($mask !='' ? $mask : ""),
+                    "api_sms" => 1,
+                    "otp_sms" => 1,
+                ];
+
+                $campaign_id = DB::table("campaigns")->insertGetId($data);
+
+
+
+echo "Campaignid => ".$campaign_id;
+exit;
+
 
                 // dd($parent_user,$admin_users,$isadmin);
 
-                $check = Campaign::where('user_id',Auth::user()->id)->whereDate("start_date", date("Y-m-d"))->where("api_sms", 1)->count();
-                $check = 0;
-                if ($check <= 0) {
-                    DB::beginTransaction();
-                    // echo $r->text;exit;
-                    try {
-                        $data = [
-                            "campaign_name" => "P2_API " . date("Ymdhis"),
-                            "created_at" => date("Y-m-d H:i:s"),
-                            "updated_at" => date("Y-m-d H:i:s"),
-                            "start_date" => date("Y-m-d H:i:s"),
-                            "status" => 4,
-                            "user_id" => Auth::user()->id,
-                            "campaign_created" => Auth::user()->id,
-                            "reseller_id" => Auth::user()->parent_user,
-                            "text_body" => "$r->text",
-                            "sms_count" => Common::smsCount($r->text),
-                            "dynamic_sms" => 0,
-                            "mask" => ($r->from !='' ? 1 : 0),
-                            "sender" => ($r->from !='' ? $r->from : ""),
-                            "api_sms" => 1,
-                            "otp_sms" => 1,
-                        ];
-                        // print_r($data);exit;
-                        $campaign_name = "P2_API " . date("Ymdhis");
-                       
-                       
-                        $ResellerCampaignController = new Reseller\CampaignController();
+               
+                DB::beginTransaction();
+                // echo $r->text;exit;
+                try {
+                    
+                    // print_r($data);exit;
+                    $campaign_name = "Multitext_API_" . date("Ymdhis");
+                   
+                   
+                    $ResellerCampaignController = new Reseller\CampaignController();
 
 
-                        if ($r->to != "") {
-                            $mask = $r->from ? 1 : 0;
-                            $cgroups = $ResellerCampaignController->rawContactUpload(
-                                $user_id,
-                                $r->to,
-                                $campaign_name,
-                                "raw"
-                            );
-                            $groups = explode(",", $cgroups);
-                            $totalcost += $ResellerCampaignController->costCalculate(
-                                $user_id,
+                    if (!empty($to_number)) {
+                        $mask = $mask ? 1 : 0;
+                        $cgroups = $ResellerCampaignController->rawContactUpload(
+                            $user_id,
+                            $r->to,
+                            $campaign_name,
+                            "raw"
+                        );
+                        $groups = explode(",", $cgroups);
+                        $totalcost += $ResellerCampaignController->costCalculate(
+                            $user_id,
+                            $mask,
+                            $smsLength,
+                            $cgroups
+                        );
+                        if ($isadmin) {
+                            //price not calculate for admin
+                        } else {
+                            $resellercost += $ResellerCampaignController->resellercostCalculate(
+                                $parent_user,
                                 $mask,
                                 $smsLength,
                                 $cgroups
                             );
-                            if ($isadmin) {
-                                //price not calculate for admin
-                            } else {
-                                $resellercost += $ResellerCampaignController->resellercostCalculate(
-                                    $parent_user,
-                                    $mask,
-                                    $smsLength,
-                                    $cgroups
-                                );
-                            }
                         }
-
-                        // echo $balance;exit;
-
-                        if ($balance < $totalcost) {
-                            $response_array["success"] = 0;
-                            $response_array["response_code"] = 106;
-                            $response_array["message"] =
-                                "You do not have sufficiant balance, your sms cost " .
-                                $totalcost .
-                                " but your balance is " .
-                                $balance .
-                                ", Please reacharge first.";
-                            return json_encode($response_array);
-                        }
-
-                        // print_r($response_array);exit;
-                        //Reseller balance check
-                        if ($isadmin) {
-                            //for admin
-                        } else {
-                            $reseller_balance = Common::getCurrentBalanceById($parent_user);
-                            // print_r($reseller_balance);
-
-                            if (
-                                number_format($reseller_balance, 4, ".", "") <
-                                $resellercost
-                            ) {
-                                $response_array["success"] = 0;
-                                $response_array["response_code"] = 107;
-                                $response_array["message"] =
-                                    "Your Reseller do not have sufficiant balance, your sms cost " .
-                                    $totalcost .
-                                    ". Contact with Reseller. ";
-                                return json_encode($response_array);
-                            }
-                        }
-
-                        $data["group_id"] = $cgroups;
-                        $data["campaign_cost"] = number_format($totalcost, 4);
-                        //Insert campaign
-                        $campaign_id = Campaign::insertGetId($data);
-
-                        $sales_id = User::whereId($user_id)->pluck('sales_person')->first();
-
-                        $recharge = new Recharge();
-                        $recharge->user_id = $user_id;
-                        $recharge->sales_id = $sales_id;
-                        $recharge->status = 1;
-                        $recharge->amount = number_format(-$totalcost,4,".","");
-                        $recharge->campaign_id = $campaign_id;
-                        $recharge->comments = $campaign_name;
-                        $userbalance = Recharge::where("user_id", $user_id)->latest()->pluck('balance')->first();
-                        if (!empty($userbalance)) {
-                            $rembalance = $userbalance - $totalcost;
-                            $recharge->balance = $rembalance;
-                        }
-
-                        $r = $recharge->save();
-
-                        $recharge = new Recharge();
-                        $recharge->user_id = $parent_user;
-                        $recharge->status = 1;
-                        $recharge->amount = number_format(-$resellercost,4,".","");
-                        $recharge->campaign_id = $campaign_id;
-                        $recharge->comments = $campaign_name;
-                        $reseller_bal = Recharge::where("user_id", $parent_user)->latest()->pluck('balance')->first();
-                        if (!empty($reseller_bal)) {
-                            $recharge->balance = $reseller_bal - $resellercost;
-                        }
-                        $r = $recharge->save();
-                        // print_r($resellercost);exit;
-                        $contacts = Contact::whereIn("group_id",$groups)->get();
-                        $data = [];
-                        $contacts_arr = [];
-                        $txt = addslashes($smstext);
-                        foreach ($contacts as $c) {
-                            $time = date("Y-m-d H:i:s");
-                            $data = [
-                                "user_id" => $c["user_id"],
-                                "reseller_id" => $c["reseller_id"],
-                                "group_id" => $c["group_id"],
-                                "campaign_id" => $campaign_id,
-                                "operator" => $c["operator"],
-                                "country_code" => $c["country_code"],
-                                "number" => $c["number"],
-                                "api_text" => addslashes($smstext),
-                                "created_at" => $time,
-                                "updated_at" => $time,
-                                "status" => 1,
-                            ];
-                            array_push($contacts_arr, $data);
-                            if (count($contacts_arr) == 200) {
-                                $con_inserts = sms_senders::insert($contacts_arr);
-                                $contacts_arr = [];
-                            }
-                        }
-
-                        $con_inserts = sms_senders::insert($contacts_arr);
-
-
-                        DB::commit();
-
-
-                        $response = $this->apiSMSsend($campaign_id);
-
-                         
-                        //SOMOSSA EKHNEI apiSMSsend
-
-                        // $response_array["reportsid"] = $campaign_id;
-                        $response_array["delivery_status"] = [];
-
-                        $succ = sms_transactions::where('campaign_id', $campaign_id)->where('status', 1)->get();
-                        $fail = sms_senders::where('campaign_id', $campaign_id)->where('status', 2)->get();
-
-
-                        foreach($succ as $s){
-                            $data = array();
-                            $data['MSISDN'] = $s->mobile_number;
-                            $data['Status'] = 1;
-                            $data['StatusText'] = "Sent";
-                            $data["smsid"] = $campaign_id ."-". $s->mobile_number;
-                            $response_array["delivery_status"][] = $data;
-                        }
-                        foreach($fail as $f){
-                            $data = array();
-                            $data['MSISDN'] = $f->country_code.$f->number;
-                            $data['Status'] = 0;
-                            $data['StatusText'] = "Failed";
-                            $data["smsid"] = $campaign_id ."-". $f->country_code.$f->number;
-                            $response_array["delivery_status"][] = $data;
-                        }
-
-                        if (count($contacts) < 2) {
-                        }
-
-                        if(count($succ) > 0){
-                            $response_array["message"] = "SMS send successfully.";
-                            $response_array["success"] = 1;
-                            $response_array["response_code"] = 100;
-                            $response_array["campaign_cost"] = $totalcost;
-                            Log::addToLog("$campaign_name Sent Successfully");
-
-                        }
-
-                        
-
-
-                    } catch (\Exception $e) {
-                        DB::rollback();
-                        echo $e->getMessage();
                     }
-                } 
+
+                    // echo $balance;exit;
+
+                    
+
+                    $data["group_id"] = $cgroups;
+                    $data["campaign_cost"] = number_format($totalcost, 4);
+                    //Insert campaign
+                    $campaign_id = Campaign::insertGetId($data);
+
+                    $sales_id = User::whereId($user_id)->pluck('sales_person')->first();
+
+                    $recharge = new Recharge();
+                    $recharge->user_id = $user_id;
+                    $recharge->sales_id = $sales_id;
+                    $recharge->status = 1;
+                    $recharge->amount = number_format(-$totalcost,4,".","");
+                    $recharge->campaign_id = $campaign_id;
+                    $recharge->comments = $campaign_name;
+                    $userbalance = Recharge::where("user_id", $user_id)->latest()->pluck('balance')->first();
+                    if (!empty($userbalance)) {
+                        $rembalance = $userbalance - $totalcost;
+                        $recharge->balance = $rembalance;
+                    }
+
+                    $r = $recharge->save();
+
+                    $recharge = new Recharge();
+                    $recharge->user_id = $parent_user;
+                    $recharge->status = 1;
+                    $recharge->amount = number_format(-$resellercost,4,".","");
+                    $recharge->campaign_id = $campaign_id;
+                    $recharge->comments = $campaign_name;
+                    $reseller_bal = Recharge::where("user_id", $parent_user)->latest()->pluck('balance')->first();
+                    if (!empty($reseller_bal)) {
+                        $recharge->balance = $reseller_bal - $resellercost;
+                    }
+                    $r = $recharge->save();
+                    // print_r($resellercost);exit;
+                    $contacts = Contact::whereIn("group_id",$groups)->get();
+                    $data = [];
+                    $contacts_arr = [];
+                    $txt = addslashes($smstext);
+                    foreach ($contacts as $c) {
+                        $time = date("Y-m-d H:i:s");
+                        $data = [
+                            "user_id" => $c["user_id"],
+                            "reseller_id" => $c["reseller_id"],
+                            "group_id" => $c["group_id"],
+                            "campaign_id" => $campaign_id,
+                            "operator" => $c["operator"],
+                            "country_code" => $c["country_code"],
+                            "number" => $c["number"],
+                            "api_text" => addslashes($smstext),
+                            "created_at" => $time,
+                            "updated_at" => $time,
+                            "status" => 1,
+                        ];
+                        array_push($contacts_arr, $data);
+                        if (count($contacts_arr) == 200) {
+                            $con_inserts = sms_senders::insert($contacts_arr);
+                            $contacts_arr = [];
+                        }
+                    }
+
+                    $con_inserts = sms_senders::insert($contacts_arr);
+
+
+                    DB::commit();
+
+
+                    $response = $this->apiSMSsend($campaign_id);
+
+                     
+                    //SOMOSSA EKHNEI apiSMSsend
+
+                    // $response_array["reportsid"] = $campaign_id;
+                    $response_array["delivery_status"] = [];
+
+                    $succ = sms_transactions::where('campaign_id', $campaign_id)->where('status', 1)->get();
+                    $fail = sms_senders::where('campaign_id', $campaign_id)->where('status', 2)->get();
+
+
+                    foreach($succ as $s){
+                        $data = array();
+                        $data['MSISDN'] = $s->mobile_number;
+                        $data['Status'] = 1;
+                        $data['StatusText'] = "Sent";
+                        $data["smsid"] = $campaign_id ."-". $s->mobile_number;
+                        $response_array["delivery_status"][] = $data;
+                    }
+                    foreach($fail as $f){
+                        $data = array();
+                        $data['MSISDN'] = $f->country_code.$f->number;
+                        $data['Status'] = 0;
+                        $data['StatusText'] = "Failed";
+                        $data["smsid"] = $campaign_id ."-". $f->country_code.$f->number;
+                        $response_array["delivery_status"][] = $data;
+                    }
+
+                    if (count($contacts) < 2) {
+                    }
+
+                    if(count($succ) > 0){
+                        $response_array["message"] = "SMS send successfully.";
+                        $response_array["success"] = 1;
+                        $response_array["response_code"] = 100;
+                        $response_array["campaign_cost"] = $totalcost;
+                        Log::addToLog("$campaign_name Sent Successfully");
+
+                    }
+
+                    
+
+
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    echo $e->getMessage();
+                }
+                
             }
         } else {
             $response_array["message"] = "Username or Password is wrong.";
