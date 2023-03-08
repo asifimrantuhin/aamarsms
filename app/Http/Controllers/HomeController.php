@@ -171,11 +171,8 @@ class HomeController extends Controller
     public static function priceSync() {
         ini_set('max_execution_time', 0);
         $sms_list = sms_transactions::select('sms_transactions.*')
-        ->join('campaigns', 'campaigns.id', '=', 'sms_transactions.campaign_id')
-        ->whereIn('campaigns.status', [1,2])
         ->where('price', '=', null)
-        //->take(300)
-        ->orderBy('campaigns.id', 'asc')
+        ->orderBy('campaign_id', 'asc')
         ->get();
 
         foreach ($sms_list as $key => $value) {

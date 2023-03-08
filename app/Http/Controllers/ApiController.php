@@ -813,6 +813,12 @@ public function balance(Request $r)
                         DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
                     }
                 }
+                $check_number = sms_senders::where('campaign_id', $campaign_id)->get();
+
+                if(count($check_number) < 1){
+                    DB::table('campaigns')->where('id', $campaign_id)->update(['status' => 1]);
+                }
+
             } else {
                 $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
                 $camp = Campaign::where('id', $campaign_id)->first();
