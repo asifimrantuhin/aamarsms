@@ -263,6 +263,7 @@ class HomeController extends Controller
         $limit = 200;
         $campaigns =  Campaign::select('id', 'dynamic_sms', 'sms_count', 'campaign_name')
         ->where('status', 4)// 2
+        ->where('api_sms', 0)// 2
         ->where('start_date', '<=', date('Y-m-d H:i:s'))
         ->orderBy(DB::raw('RAND()'))
         ->first();
