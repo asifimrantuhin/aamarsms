@@ -771,7 +771,7 @@ public function balance(Request $r)
 
     public static function apiSMSsend($campaign_id)
     {
-        $limit = 200;
+        $limit = 100;
         $campaigns = Campaign::select("id", "dynamic_sms", "sms_count")->where("id", $campaign_id)->first();
         if($campaigns){
             $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
