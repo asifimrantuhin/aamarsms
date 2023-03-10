@@ -210,6 +210,8 @@ class BulkService extends Model {
                         }
                         $f = 0;
                         if (count($contacts) > 0) {
+                            $dataArr = [];
+                            $ids = [];
                             foreach ($contacts as $key => $contact) {
                                 $data = array();
                                 $data['user_id'] = $contact->user_id;
@@ -227,19 +229,21 @@ class BulkService extends Model {
                                 $data['smsid'] = (isset($smsidArr[$f]->MessageId) ? $smsidArr[$f]->MessageId: $smsidArr[$f]) ;
                                 $data['price'] = $price;
                                 $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
-                                sms_transactions::insert($data);
 
                                 $operator =  $data['operator'];
                                 $user_id = $data['user_id'];
                                 $sms_count = $data['sms_count'];
 
-                                if ($campaigns->dynamic_sms == 1) {
-                                    DB::table('dynamic_sms')->where('id', $contact->id)->delete();
-                                }else{
-                                    sms_senders::where('id', $contact->id)->delete();
-                                }
-                                //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                                array_push($dataArr, $data);
+                                array_push($ids, $contact->id);
                                 $f++;
+                            }
+
+                            sms_transactions::insert($dataArr);
+                            if ($campaigns->dynamic_sms == 1) {
+                                DynamicSMS::whereIn('id', $ids)->delete();
+                            }else{
+                                sms_senders::whereIn('id', $ids)->delete();
                             }
                         }
 
@@ -250,6 +254,8 @@ class BulkService extends Model {
                             $price = isset($contact->sms_cost) ? $contact->sms_cost : '';
                         }
                         if (count($contacts) > 0) {
+                            $dataArr = [];
+                            $ids = [];
                             foreach ($contacts as $key => $contact) {
                                 $data = array();
                                 $data['user_id'] = $contact->user_id;
@@ -266,17 +272,21 @@ class BulkService extends Model {
                                 $data['smsid'] = $res->smsid;
                                 $data['price'] = $price;
                                 $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
-                                sms_transactions::insert($data);
 
                                 $operator =  $data['operator'];
                                 $user_id = $data['user_id'];
                                 $sms_count = $data['sms_count'];
-                                if ($campaigns->dynamic_sms == 1) {
-                                    DB::table('dynamic_sms')->where('id', $contact->id)->delete();
-                                }else{
-                                    sms_senders::where('id', $contact->id)->delete();
-                                }
-                                //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+
+                                array_push($dataArr, $data);
+                                array_push($ids, $contact->id);
+                                
+                            }
+
+                            sms_transactions::insert($dataArr);
+                            if ($campaigns->dynamic_sms == 1) {
+                                DynamicSMS::whereIn('id', $ids)->delete();
+                            }else{
+                                sms_senders::whereIn('id', $ids)->delete();
                             }
                         }
                     }
@@ -287,10 +297,10 @@ class BulkService extends Model {
 
 
         if($campaigns->dynamic_sms){
-                DynamicSMS::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 2]);
-            }else{
-                sms_senders::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 2]);
-            }
+            DynamicSMS::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 2]);
+        }else{
+            sms_senders::where('campaign_id', $campaign_id)->whereBetween('id', [$min_id, $max_id])->update(['status' => 2]);
+        }
     }
 
 
@@ -310,8 +320,9 @@ class BulkService extends Model {
                 $f = 0;
 
                 if (count($contacts) > 0) {
+                    $dataArr = [];
+                    $ids = [];
                     foreach ($contacts as $key => $contact) {
-
                         if ($contact->operator === $operator) {
                             $data = array();
                             $data['user_id'] = $contact->user_id;
@@ -330,24 +341,24 @@ class BulkService extends Model {
                             $data['price'] = $contact->sms_cost;
                             $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
                             //$data['text']          = "$sms_body";
-                            sms_transactions::insert($data);
+                            
 
                             $operator =  $data['operator'];
                             $user_id = $data['user_id'];
                             $sms_count = $data['sms_count'];
                             $type = 1;
 
-                            
-
-                            if ($campaigns->dynamic_sms == 1) {
-                                DynamicSMS::where('id', $contact->id)->delete();
-                            }else{
-                                sms_senders::where('id', $contact->id)->delete();
-                            }
+                            array_push($dataArr, $data);
+                            array_push($ids, $contact->id);
                             //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
                             $f++;
                         }
-                       
+                    }
+                    sms_transactions::insert($dataArr);
+                    if ($campaigns->dynamic_sms == 1) {
+                        DynamicSMS::whereIn('id', $ids)->delete();
+                    }else{
+                        sms_senders::whereIn('id', $ids)->delete();
                     }
                 }
 
@@ -359,6 +370,8 @@ class BulkService extends Model {
                 }
                 
                 if (count($contacts) > 0) {
+                    $dataArr = [];
+                    $ids = [];
                     foreach ($contacts as $key => $contact) {
                         if ($contact->operator === $operator) {
                            // echo $operator;
@@ -385,15 +398,15 @@ class BulkService extends Model {
                             $sms_count = $data['sms_count'];
                             $type = 1;
 
-                            
-                            
-                            if ($campaigns->dynamic_sms == 1) {
-                                DynamicSMS::where('id', $contact->id)->delete();
-                            }else{
-                            sms_senders::where('id', $contact->id)->delete();
-                            }
-                            //UserSMSCount::getUserSMSsummary($operator,$user_id,$sms_count,$type);
+                            array_push($dataArr, $data);
+                            array_push($ids, $contact->id);
                         }
+                    }
+                    sms_transactions::insert($dataArr);
+                    if ($campaigns->dynamic_sms == 1) {
+                        DynamicSMS::whereIn('id', $ids)->delete();
+                    }else{
+                        sms_senders::whereIn('id', $ids)->delete();
                     }
                 }
             }
