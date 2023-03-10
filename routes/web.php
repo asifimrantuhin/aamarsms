@@ -68,10 +68,8 @@ Route::post('/verifyotp', '\App\Http\Controllers\Auth\RegisterController@otp');
 
 Route::get('sms-sender', [HomeController::class, 'smsSender']); // Single SMS
 Route::get('sms-sending', [HomeController::class, 'smsSending']); // Bulk SMS
-Route::get('sms-sending2', [HomeController::class, 'smsSending']); // Bulk SMS
-Route::get('sms-sending3', [HomeController::class, 'smsSending']); // Bulk SMS
-Route::get('sms-sending4', [HomeController::class, 'smsSending']); // Bulk SMS
-Route::get('bulk-sms-sending', [HomeController::class, 'smsSending']);
+Route::get('api-sms-sending', [HomeController::class, 'apismsSending']); // Bulk SMS
+
 
 
 Route::get('user-sms-summary', [HomeController::class, 'getUserSMSsummary2']);

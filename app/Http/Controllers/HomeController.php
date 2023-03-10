@@ -407,68 +407,75 @@ class HomeController extends Controller
         
     }
 
-    public static function smsSending2() {
+    public static function apismsSending() {
         ini_set('max_execution_time', 0);
-        $limit = 200;
+        $limit = 100;
         $campaigns =  Campaign::select('id', 'dynamic_sms', 'sms_count', 'campaign_name')
         ->where('status', 4)// 2
+        ->where('api_sms', 1)// 2
         ->where('start_date', '<=', date('Y-m-d H:i:s'))
-        // ->where('mask', 1)  Masking+Non-masking both kaj krbe ekn
-        ->orderBy('id', 'asc')
+        ->orderBy(DB::raw('RAND()'))
         ->first();
+
         if($campaigns){
-            $is_dynamic = ($campaigns ? $campaigns->$dynamic_sms : 0);
             $campaign_id = isset($campaigns->id) ? $campaigns->id : 0;
-            $min_id = NULL;
-            $max_id = NULL;
-            //
-            if($is_dynamic){
+            if($campaigns->dynamic_sms){
                 $min_id = DynamicSMS::where('campaign_id', $campaign_id)->where('status', 1)->min('id');
-                $max_id = ($min_id ? ($min_id + $limit) : 0);
             }else{
                 $min_id = sms_senders::where('campaign_id', $campaign_id)->where('status', 1)->min('id');//use 1
-                $max_id = ($min_id ? ($min_id + $limit) : 0);
             }
-            
-           
-            // $min_id = $min_id != NULL ? $min_id : $dynamic_sms_min_id;
-            // $max_id = $max_id != NULL ? $max_id : $dynamic_sms_max_id;
 
             if($min_id == NULL){
                 $min_id = 0;
             }
-            
-
-            
-            if($is_dynamic){
-                DynamicSMS::where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
-                  
-            }else{
-                sms_senders::where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
-            }
-            echo $min_id . '/' . $max_id. '  / ';
-            if ($min_id > 0 && $max_id > 0) {
+        
+            if ($min_id > 0) {
+                
                 echo "SMS SENDING PROCESSING...";
-                if($campaign_id > 0){
-                    $cron_id = DB::table('crontab')->insertGetId([
-                        'cron_name' => 'bulk',
-                        'campaign_id' => $campaign_id,
-                        'min_id' => $min_id,
-                        'max_id' =>  $max_id,
-                        'execute_time' => date('Y-m-d H:i:s')
-                    ]);
-                }
-                echo BulkService::send($campaign_id, $min_id, $max_id, $limit);
-                if($campaign_id > 0){
-                    DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
-                }
+                $max_id = $min_id + ($limit-1);
+                echo $min_id . '/' . $max_id. '  / ';
+                $cron_id = 0;
+                $cron_check = DB::table('crontab')
+                    ->where('campaign_id' , $campaign_id)
+                    ->where('min_id', '>=', $min_id)
+                    ->where('min_id','<=', $max_id)
+                    ->where('max_id','>=',  $min_id)
+                    ->where('max_id', '<=', $max_id)
+                    ->whereNull('end_time')
+                    ->first();
 
+                if(!$cron_check){
+
+                    if($campaign_id > 0){
+                        $cron_id = DB::table('crontab')->insertGetId([
+                            'cron_name' => 'bulk',
+                            'campaign_id' => $campaign_id,
+                            'min_id' => $min_id,
+                            'max_id' =>  $max_id,
+                            'execute_time' => date('Y-m-d H:i:s')
+                        ]);
+                    }
+
+                    
+                    if($campaigns->dynamic_sms){
+                        DynamicSMS::where('id', '>=', $min_id)->where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+                    }else{
+                        sms_senders::where('id', '>=', $min_id)->where('id', '<=', $max_id)->where('campaign_id', $campaign_id)->update(['status' => 2]);
+                    }
+                    
+                    
+                    echo BulkService::send($campaign_id, $min_id, $max_id, $limit,$cron_id);
+                    
+                    if($campaign_id > 0){
+                        DB::table('crontab')->where('id', $cron_id)->update(['end_time' => date('Y-m-d H:i:s')]);
+                    }
+                }
             }else{
                 $countFailed = sms_senders::where('campaign_id', $campaign_id)->count();
-                if($countFailed > 0){
+                $camp = Campaign::where('id', $campaign_id)->first();
+                $retryCount = ($camp ? $camp->retry +1 : 0);
+                if($countFailed > 0 && $retryCount < 3){
                     echo "Retry Campaign";
-                    $camp = Campaign::where('id', $campaign_id)->first();
-                    $retryCount = $camp->retry +1;
                     Campaign::where('id', $campaign_id)->update(['retry' => $retryCount]);
                     sms_senders::where('campaign_id', $campaign_id)->update(['status' => 1]);
                     DynamicSMS::where('campaign_id', $campaign_id)->update(['status' => 1]);
