@@ -16,7 +16,10 @@
         <div class="row">
             <div class="col-lg-12">
                 <div class="br-section-wrapper">
-                    <h6 class="tx-gray-800 tx-uppercase tx-bold tx-14 mg-b-10">Reseller/User Transaction History</h6>
+                    <h6 class="tx-gray-800 tx-uppercase tx-bold tx-14 mg-b-10">
+                    Reseller/User Transaction History 
+                    <button type="button" class="btn btn-info pd-y-6 pd-x-20 bd-0 mg-md-l-10 mg-t-10 mg-md-t-0 tx-uppercase tx-11 tx-spacing-2 float-right" style="float:right" onclick="exportReport()">Export</button>
+                </h6>
                     
                     <div class="table-wrapper">
                         <div class="bd rounded table-responsive">
@@ -59,5 +62,17 @@
     </div><!-- page body -->
 
 </div>
+
+
+<script type="text/javascript">
+    function exportReport(){
+
+    window.location.href='/reseller/balance_history_export';
+
+}
+
+
+    
+</script>
 
 @endsection

@@ -257,6 +257,9 @@ Route::group(['prefix' => 'admin', 'middleware'=>['admin','auth']], function () 
     Route::post('/recharge/create', [RechargeController::class, 'store']);
     Route::get('/recharge_history', [RechargeController::class, 'History']);
     Route::post('/recharge_history', [RechargeController::class, 'History']);
+    Route::any('/recharge_history_export', [RechargeController::class, 'resellerRechargeExport']);
+
+
     Route::get('/transaction_history', [RechargeController::class, 'TransactionHistory']);
     Route::get('/trx_status/{id}/{status}', [RechargeController::class,'AdminTransaction']);
 
@@ -346,10 +349,12 @@ Route::group(['prefix' => 'reseller','middleware'=>['reseller','auth']], functio
     // Recharge
     Route::post('/recharge/create', [ResellerRechargeController::class, 'store']);
     Route::get('/user_recharge_history', [ResellerRechargeController::class, 'History']);
+    Route::any('/user_recharge_history_export', [ResellerRechargeController::class, 'ExportHistory']);
     Route::post('/user_recharge_history', [ResellerRechargeController::class, 'History']);
     Route::get('/reseller_recharge_history', [ResellerRechargeController::class, 'MyRecharge']);
     Route::post('/reseller_recharge_history', [ResellerRechargeController::class, 'MyRecharge']);
     Route::get('/balance_history', [ResellerRechargeController::class, 'balanceHistory']);
+    Route::any('/balance_history_export', [ResellerRechargeController::class, 'balanceHistoryExport']);
     // Recharge
 
     // Report
@@ -390,8 +395,10 @@ Route::group(['prefix' => 'reseller','middleware'=>['reseller','auth']], functio
     // Report Management
     Route::get('My_smsReport', [ResellerController::class, 'MydailySMSReport']);
     Route::post('My_smsReport', [ResellerController::class, 'MydailySMSReport']);
+    Route::any('My_smsReportExport', [ResellerController::class, 'MydailySMSReportExport']);
     Route::get('userReport', [ResellerController::class, 'UserSMSReport']);
     Route::post('userReport', [ResellerController::class, 'UserSMSReport']);
+    Route::any('userReportExport', [ResellerController::class, 'UserSMSReportExport']);
     Route::get('user_smsReport', [ResellerController::class, 'UserSMSReport']);
     // Report Management
 
@@ -583,6 +590,7 @@ Route::group(['prefix' => 'reseller/dlr'], function () {
     Route::get('campaignlist', [DLRController::class, 'reseller_selfcampaignlist_dlr']);
     Route::get('deliverylog', [DLRController::class, 'reseller_selfdeliverylog']);
     Route::get('usercampaignlist', [DLRController::class, 'resellers_usercampaignlist_dlr']);
+    Route::get('usercampaignlist_export', [DLRController::class, 'resellers_usercampaignlist_dlr_export']);
     Route::get('userdeliverylog', [DLRController::class, 'resellers_userdeliverylog']);
 });
 Route::group(['prefix' => 'user/dlr'], function () {
