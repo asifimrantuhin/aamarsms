@@ -18,10 +18,12 @@ use App\Models\User;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Facades\Excel;
+//use Maatwebsite\Excel\Facades\Excel;
 use Rap2hpoutre\FastExcel\FastExcel;
 use DB;
 use DataTables;
+use Excel;
+use App\Exports\GlobalExport;
 
 
 
@@ -104,14 +106,69 @@ class DLRController extends Controller
     }
 
     public function resellers_usercampaignlist_dlr(Request $request){
+        $campaign_name = $request->input('campaign_name');
+        $from_date = $request->get('from_date');
+        $to_date = $request->get('to_date');
+        if (empty($from_date)) {
+            $from_date = '2012-01-01 00:00:00';
+        } else {
+            $from_date = $from_date . ' 00:00:00';
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d H:i:s');
+        } else {
+            $to_date = $to_date . ' 23:59:59';
+        }
+
+
+
         $userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
         $campaigns = Campaign::whereIn('user_id',$userlist)
         ->select('campaigns.*', 'users.name as username')
         ->join('users', 'users.id', 'campaigns.user_id')
+        ->when($campaign_name, function($query, $campaign_name){
+            return $query->where('campaigns.campaign_name', 'LIKE', $campaign_name);
+        })
+        ->whereBetween('campaigns.start_date',[$from_date,$to_date])
         ->orderby('id','DESC')
         ->paginate(20);
         return view('dlr/reseller/resellers_usercampaignlist_dlr',compact('campaigns'));
     }
+
+    public function resellers_usercampaignlist_dlr_export(Request $request){
+        $campaign_name = $request->input('campaign_name');
+        $from_date = $request->get('from_date');
+        $to_date = $request->get('to_date');
+        if (empty($from_date)) {
+            $from_date = '2012-01-01 00:00:00';
+        } else {
+            $from_date = $from_date . ' 00:00:00';
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d H:i:s');
+        } else {
+            $to_date = $to_date . ' 23:59:59';
+        }
+
+
+
+        $userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
+        $campaigns = Campaign::whereIn('user_id',$userlist)
+        ->select('campaigns.*', 'users.name as username')
+        ->join('users', 'users.id', 'campaigns.user_id')
+        ->when($campaign_name, function($query, $campaign_name){
+            return $query->where('campaigns.campaign_name', 'LIKE', $campaign_name);
+        })
+        ->whereBetween('campaigns.start_date',[$from_date,$to_date])
+        ->orderby('id','DESC')
+        ->get();
+
+        return Excel::download(new GlobalExport("dlr/reseller/resellers_usercampaignlist_dlr_export", $campaigns), 'campaign_report.xlsx');
+
+
+        //return view('dlr/reseller/resellers_usercampaignlist_dlr',compact('campaigns'));
+    }
+
 
     public function admin_usercampaignlist_dlr(Request $request){
         $userlist = DB::table('users')->where('parent_user', Auth::user()->id)->pluck('id');
