@@ -340,7 +340,7 @@ class BulkService extends Model {
                             $data['smsid'] = (isset($smsidArr[$f]->MessageId) ? $smsidArr[$f]->MessageId: $smsidArr[$f]) ;
                             $data['price'] = $contact->sms_cost;
                             $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
-                            //$data['text']          = "$sms_body";
+                            $data['text']          = "$sms_body";
                             
 
                             $operator =  $data['operator'];
@@ -390,7 +390,7 @@ class BulkService extends Model {
                             $data['smsid'] = $res->smsid;
                             $data['price'] = $price;
                             $data['sms_count'] = ($campaigns->dynamic_sms == 1) ? $contact->sms_count : $sms_count;
-                            //$data['text']          = "$sms_body";
+                            $data['text']          = "$sms_body";
                             sms_transactions::insert($data);
 
                             $operator =  $data['operator'];
