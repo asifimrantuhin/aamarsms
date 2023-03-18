@@ -588,6 +588,7 @@ Route::group(['prefix' => 'reseller/dlr'], function () {
     Route::get('campaignwise/{campaignid}', [DLRController::class, 'campaignwise_dlr']);
     Route::get('campaignwise/dlr_export/{id}', [DLRController::class, 'campaignDlrExport']);
     Route::get('campaignlist', [DLRController::class, 'reseller_selfcampaignlist_dlr']);
+    Route::any('campaignlist_export', [DLRController::class, 'reseller_selfcampaignlist_dlr_export']);
     Route::get('deliverylog', [DLRController::class, 'reseller_selfdeliverylog']);
     Route::get('usercampaignlist', [DLRController::class, 'resellers_usercampaignlist_dlr']);
     Route::get('usercampaignlist_export', [DLRController::class, 'resellers_usercampaignlist_dlr_export']);

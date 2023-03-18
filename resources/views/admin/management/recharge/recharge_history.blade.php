@@ -20,14 +20,14 @@
                 <form method="GET" autocomplete="off">
                     <!--{{ csrf_field() }}-->
                     <div class="d-md-flex pd-y-20 pd-md-y-0">
-                      <select name="user"  class="form-control mg-md-l-10">
+                      <select id="user"   name="user"  class="form-control mg-md-l-10">
                           <option value="">Select User</option>
                           @foreach($customers as $user)
                           <option value="{{$user->id}}">{{$user->name}}</option>
                           @endforeach
                       </select>
 
-                      <select name="sales_id"  class="form-control mg-md-l-10">
+                      <select id="sales_id"  name="sales_id"  class="form-control mg-md-l-10">
                         <option value="">Select Executive</option>
                         @foreach($executives as $executive)
                         <option value="{{$executive->id}}">{{$executive->name}}</option>
@@ -36,14 +36,15 @@
                       
                       <div class="input-group mg-md-l-10">
                         <span class="input-group-addon"><i class="icon ion-calendar tx-16 lh-0 op-6"></i></span>
-                        <input type="text" name="date_from" class="form-control datepicker" placeholder="Date From" value="<?php if(isset($_REQUEST['date_from'])) echo $_REQUEST['date_from']; ?>">
+                        <input type="text" id="date_from" name="date_from" class="form-control datepicker" placeholder="Date From" value="<?php if(isset($_REQUEST['date_from'])) echo $_REQUEST['date_from']; ?>">
                       </div>
                      
                        <div class="input-group mg-md-l-10">
                         <span class="input-group-addon"><i class="icon ion-calendar tx-16 lh-0 op-6"></i></span>
-                        <input type="text" name="date_to" class="form-control datepicker" placeholder="Date To" value="<?php if(isset($_REQUEST['date_to'])) echo $_REQUEST['date_to']; ?>">
+                        <input type="text" id="date_to" name="date_to" class="form-control datepicker" placeholder="Date To" value="<?php if(isset($_REQUEST['date_to'])) echo $_REQUEST['date_to']; ?>">
                       </div> 
                       <button type="submit" class="btn btn-info pd-y-13 pd-x-20 bd-0 mg-md-l-10 mg-t-10 mg-md-t-0 tx-uppercase tx-11 tx-spacing-2">Search</button>
+                      <button type="button" class="btn btn-info pd-y-13 pd-x-20 bd-0 mg-md-l-10 mg-t-10 mg-md-t-0 tx-uppercase tx-11 tx-spacing-2" onclick="exportReport()">Export</button>
                     </div>
                 </form>
             </div>
@@ -270,6 +271,19 @@ $(document).ready(function(){
         });
      });
     });
+
+
+function exportReport(){
+
+    var user = document.getElementById("user").value;
+    var sales_id = document.getElementById("sales_id").value;
+    var date_from = document.getElementById("date_from").value;
+    var date_to = document.getElementById("date_to").value;
+
+    window.location.href='/reseller/user_recharge_history_export?user='+user+'&sales_id='+sales_id+'&date_from='+date_from+'&date_to='+date_to;
+
+}
+   
     
 </script>
 

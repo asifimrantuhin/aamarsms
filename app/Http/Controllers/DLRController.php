@@ -105,6 +105,15 @@ class DLRController extends Controller
         return view('dlr/user/campaignlist_dlr',compact('users','campaigns'));
     }
 
+    public function reseller_selfcampaignlist_dlr_export(Request $request){
+        $users = Auth::user();
+        $campaigns = Campaign::where('user_id',$users->id)->orderby('id','DESC')->get();
+        return Excel::download(new GlobalExport("dlr/user/campaignlist_dlr_export", $campaigns), 'campaign_report.xlsx');
+       // return view('dlr/user/campaignlist_dlr',compact('users','campaigns'));
+    }
+
+
+
     public function resellers_usercampaignlist_dlr(Request $request){
         $campaign_name = $request->input('campaign_name');
         $from_date = $request->get('from_date');

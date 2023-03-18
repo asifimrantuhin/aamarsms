@@ -69,10 +69,10 @@
                                 <tr>
                                     <td class="text-center">{{ date('d-m-Y', strtotime($sm->sent_date)) }}</td>
                                     <td class="text-right">{{ $sm->username }}</td>
-                                    <td class="text-right">{{ $sm->gp }}</td>
-                                    <td class="text-right">{{ $sm->bl }}</td>
-                                    <td class="text-right">{{ $sm->robi + $sm->airtel }}</td>
-                                    <td class="text-right">{{ $sm->teletalk }}</td>
+                                    <td class="text-right">{{ ($sm->gp?$sm->gp:0) }}</td>
+                                    <td class="text-right">{{ ($sm->bl?$sm->bl:0) }}</td>
+                                    <td class="text-right">{{ ($sm->robi + $sm->airtel? $sm->robi + $sm->airtel:0) }}</td>
+                                    <td class="text-right">{{ ($sm->teletalk?$sm->teletalk:0) }}</td>
                                     <td class="text-right">{{ ($sm->gp + $sm->bl + $sm->robi + $sm->airtel + $sm->teletalk)}}</td>
                                 </tr>
                                 @endforeach

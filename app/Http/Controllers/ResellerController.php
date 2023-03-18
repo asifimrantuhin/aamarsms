@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use DB;
+use Excel;
+use App\Exports\GlobalExport;
 
 class ResellerController extends Controller
 {
@@ -143,6 +145,43 @@ class ResellerController extends Controller
     }
 
 
+    public function MydailySMSReportExport(Request $request)
+    {
+        $from_date = $request->input('from_date');
+        $to_date = $request->input('to_date');
+        if (empty($from_date)) {
+            $from_date = date('Y-m-01 H:i:s');
+        } else {
+            $from_date = $from_date . ' 00:00:00';
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d H:i:s');
+        } else {
+            $to_date = $to_date . ' 23:59:59';
+        }
+
+
+        $sms_report = DB::table('user-sms-count')
+                        ->select(DB::raw("sent_date"), 
+                                DB::raw("SUM(gp) as gp"),
+                                DB::raw("SUM(bl) as bl"),
+                                DB::raw("SUM(robi) as robi"),
+                                DB::raw("SUM(teletalk) as teletalk"),
+                                DB::raw("SUM(airtel) as airtel")
+                                )
+                         ->where('user_id', Auth::user()->id)
+                        ->whereBetween(DB::raw('sent_date'), [$from_date, $to_date])
+                        ->groupBy(DB::raw('sent_date'))
+                        ->orderBy('sent_date', 'DESC')
+                        ->get();
+
+        return Excel::download(new GlobalExport("reseller.management.reports.my_sms_report_export", $sms_report), 'my_sms_report.xlsx');
+
+ 
+        //return view('reseller.management.reports.my_sms_report')->with(['sms_report' => $sms_report]);
+    }
+
+
     public function UserSMSReport(Request $request) {
         $user = $request->input('user');
         $from_date = $request->input('from_date');
@@ -163,11 +202,39 @@ class ResellerController extends Controller
                     ->select('u.name as username', 'usc.*')
                     ->where('u.parent_user', Auth::user()->id)
                     ->whereBetween('usc.sent_date', [$from_date, $to_date])
-                    ->orderBy('usc.id', 'DESC')->paginate(10);
+                    ->orderBy('usc.id', 'DESC')
+                    ->paginate(10);
 
 
 
         return view('reseller.management.reports.user_sms_report')->with(['sms_report' => $sms_report]);
+    }
+
+    public function UserSMSReportExport(Request $request) {
+        $user = $request->input('user');
+        $from_date = $request->input('from_date');
+        $to_date = $request->input('to_date');
+        if (empty($from_date)) {
+            $from_date = date('Y-m-01 H:i:s');
+        } else {
+            $from_date = $from_date . ' 00:00:00';
+        }
+        if (empty($to_date)) {
+            $to_date = date('Y-m-d H:i:s');
+        } else {
+            $to_date = $to_date . ' 23:59:59';
+        }
+
+        $sms_report = DB::table('user-sms-count as usc')
+                    ->leftJoin('users as u', 'u.id', '=', 'usc.user_id')
+                    ->select('u.name as username', 'usc.*')
+                    ->where('u.parent_user', Auth::user()->id)
+                    ->whereBetween('usc.sent_date', [$from_date, $to_date])
+                    ->orderBy('usc.id', 'DESC')
+                    ->get();
+
+        return Excel::download(new GlobalExport("reseller.management.reports.user_sms_report_export", $sms_report), 'user_sms_report.xlsx');
+        //return view('reseller.management.reports.user_sms_report_export')->with(['sms_report' => $sms_report]);
     }
 
 
