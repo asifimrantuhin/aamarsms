@@ -19,16 +19,17 @@
                                 
                                 <div class="input-group  mg-b-10 mg-r-10">
                                     <span class="input-group-addon"><i class="icon ion-calendar tx-16 lh-0 op-6"></i></span>
-                                    <input type="text" name="from_date" class="form-control datepicker camp_datepicker" placeholder="Date From" 
+                                    <input type="text" id="from_date"  name="from_date" class="form-control datepicker camp_datepicker" placeholder="Date From" 
                                            value="<?php if (isset($_REQUEST['from_date'])) echo $_REQUEST['from_date']; ?>">
                                 </div>
                                 <div class="input-group  mg-b-10 ">
                                     <span class="input-group-addon"><i class="icon ion-calendar tx-16 lh-0 op-6"></i></span>
-                                    <input type="text" name="to_date" class="form-control datepicker camp_datepicker" placeholder="Date To"  
+                                    <input type="text" id="to_date"  name="to_date" class="form-control datepicker camp_datepicker" placeholder="Date To"  
                                            value="<?php if (isset($_REQUEST['to_date'])) echo $_REQUEST['to_date']; ?>">
                                 </div>
                                 <div class="input-group  mg-b-10 mg-r-10">
                                     <button type="submit" class="btn btn-info pd-y-13 pd-x-20 bd-0 mg-md-l-10 mg-t-10 mg-md-t-0 tx-uppercase tx-11 tx-spacing-2">Search</button>
+                                    <button type="button" class="btn btn-info pd-y-13 pd-x-20 bd-0 mg-md-l-10 mg-t-10 mg-md-t-0 tx-uppercase tx-11 tx-spacing-2" onclick="exportReport()">Export</button>
                                 </div>
                             </div>
                         </form>
@@ -108,5 +109,17 @@
     </div>      
 </div>
 
+<script type="text/javascript">
 
+    function exportReport(){
+
+        var from_date = document.getElementById("from_date").value;
+        var to_date = document.getElementById("to_date").value;
+
+        window.location.href='/admin/sms_transactions_export?from_date='+from_date+'&to_date='+to_date;
+
+    }
+
+
+</script>
 @endsection

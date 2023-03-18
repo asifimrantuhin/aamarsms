@@ -279,9 +279,12 @@ Route::group(['prefix' => 'admin', 'middleware'=>['admin','auth']], function () 
 
     // Report management
     Route::get('/sms_transactions', [AdminController::class, 'SMSTransactions']);
+    Route::get('/sms_transactions_export', [AdminController::class, 'SMSTransactionsExport']);
     Route::get('/vendor_sms', [AdminController::class, 'VendorTransactionsHistory']);
     Route::get('/user_sms', [AdminController::class, 'UserSMSReport']);
+    Route::get('/user_sms_export', [AdminController::class, 'UserSMSReportExport']);
     Route::get('/reseller_sms', [AdminController::class, 'ResellerSMSReport']);
+    Route::get('/reseller_sms_export', [AdminController::class, 'ResellerSMSReportExport']);
     Route::get('/financial_report', [AdminController::class, 'FinancialReport']);
     
     // Report management
