@@ -32,12 +32,14 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SslCommerzPaymentController;
 use App\Http\Controllers\User\CampaignController as UserCampaignController;
 use App\Http\Controllers\User\DynamicSmsController;
-use App\Http\Controllers\User\GroupController as UserGroupController;;
+use App\Http\Controllers\User\GroupController as UserGroupController;
 
 use App\Http\Controllers\User\RatePlanController as UserRatePlanController;
 use App\Http\Controllers\User\TemplateController as UserTemplateController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DLRController;
+
+use App\Http\Controllers\Reseller\DynamicSmsController as ResellerDynamicSmsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -339,6 +341,19 @@ Route::group(['prefix' => 'reseller','middleware'=>['reseller','auth']], functio
     Route::post('update_campaign/{id}', [ResellerCampaignController::class, 'updateCampaign']);
     Route::get('delete_campaign/{id}', [ResellerCampaignController::class, 'deleteCampaign']);
     // Campaigns
+
+     // Dynamic SMS
+    Route::get('dynamic_sms', [ResellerDynamicSmsController::class, 'DynamicCampaign']);
+    Route::get('dynamic_list', [ResellerDynamicSmsController::class, 'DynamicCampaignList']);
+    Route::post('dynamic_campaign', [ResellerDynamicSmsController::class, 'CampaignStore']);
+    Route::post('store_dynamic_sms', [ResellerDynamicSmsController::class, 'DynamicStore']);
+    Route::get('/dynamicfile', [HomeController::class, 'DynamicFile']);
+    Route::get('/dynamicsms', [HomeController::class, 'DynamicSMSTemplate']);
+    // Dynamic SMS
+
+
+
+
 
 
     // Template
